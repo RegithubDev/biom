@@ -56,7 +56,6 @@ import com.resustainability.reisp.model.Att;
 import com.resustainability.reisp.model.IRM;
 import com.resustainability.reisp.model.PunchRecord;
 import com.resustainability.reisp.model.RawPunch;
-import com.resustainability.reisp.model.RoleMapping;
 import com.resustainability.reisp.model.User;
 import com.resustainability.reisp.common.CommonMethods;
 

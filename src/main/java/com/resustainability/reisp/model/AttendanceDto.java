@@ -1,0 +1,109 @@
+package com.resustainability.reisp.model;
+
+public class AttendanceDto {
+	private String workDate;
+	private String empCode;
+	private String employeeName;
+	private String checkIn;
+	private String checkOut;
+	private String shiftType;
+	private String totalWorkingHours;
+	private String totalHours;
+	private String attendanceStatus;
+	private int isHoliday;
+	private String holidayReason;
+	private String overtime;
+	private String finalOT;
+	private String remarks;
+
+    public String getEmployeeName() {
+		return employeeName;
+	}
+	public void setEmployeeName(String employeeName) {
+		this.employeeName = employeeName;
+	}
+	public String getShiftType() {
+		return shiftType;
+	}
+	public void setShiftType(String shiftType) {
+		this.shiftType = shiftType;
+	}
+	public String getTotalWorkingHours() {
+		return totalWorkingHours;
+	}
+	public void setTotalWorkingHours(String totalWorkingHours) {
+		this.totalWorkingHours = totalWorkingHours;
+	}
+	public String getAttendanceStatus() {
+		return attendanceStatus;
+	}
+	public void setAttendanceStatus(String attendanceStatus) {
+		this.attendanceStatus = attendanceStatus;
+	}
+	public int getIsHoliday() {
+		return isHoliday;
+	}
+	public void setIsHoliday(int isHoliday) {
+		this.isHoliday = isHoliday;
+	}
+	public String getHolidayReason() {
+		return holidayReason;
+	}
+	public void setHolidayReason(String holidayReason) {
+		this.holidayReason = holidayReason;
+	}
+	public String getOvertime() {
+		return overtime;
+	}
+	public void setOvertime(String overtime) {
+		this.overtime = overtime;
+	}
+	public String getFinalOT() {
+		return finalOT;
+	}
+	public void setFinalOT(String finalOT) {
+		this.finalOT = finalOT;
+	}
+	public String getRemarks() {
+		return remarks;
+	}
+	public void setRemarks(String remarks) {
+		this.remarks = remarks;
+	}
+	// Getters and setters
+	public String getWorkDate() {
+		return workDate;
+	}
+	public void setWorkDate(String workDate) {
+		this.workDate = workDate;
+	}
+	public String getEmpCode() {
+		return empCode;
+	}
+	public void setEmpCode(String empCode) {
+		this.empCode = empCode;
+	}
+	
+	public String getCheckIn() {
+		return checkIn;
+	}
+	public void setCheckIn(String checkIn) {
+		this.checkIn = checkIn;
+	}
+	public String getCheckOut() {
+		return checkOut;
+	}
+	public void setCheckOut(String checkOut) {
+		this.checkOut = checkOut;
+	}
+	public String getTotalHours() {
+		return totalHours;
+	}
+	public void setTotalHours(String totalHours) {
+		this.totalHours = totalHours;
+	}
+
+    
+}
+
+

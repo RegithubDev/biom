@@ -40,6 +40,16 @@ public class IRMService {
 		return dao.getIRMLAzyList(obj, startIndex, offset, searchParameter);
 	}
 
+	public int getTotalRecords(User obj, String searchParameter) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public List<IRM> getIRMList(IRM obj) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 	
 }

@@ -34,6 +34,7 @@ public class PageConstants {
 	public static final String role_master = "roleMaster";
 	public static final String irmAdd = "irm";
 	public static final String irmMain = "irmMain";
+	public static final String homeAtt = "homeAtt";
 	public static final String irmReport = "irmReport";
 	public static final String irmUpdate = "irmUpdate";
 	public static final String test = "test";

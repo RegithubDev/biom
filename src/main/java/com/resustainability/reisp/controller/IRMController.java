@@ -1,5 +1,6 @@
 package com.resustainability.reisp.controller;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -38,6 +40,7 @@ import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
+import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.ss.util.WorkbookUtil;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
@@ -47,7 +50,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Controller;
@@ -63,19 +68,26 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.resustainability.reisp.common.DateParser;
 import com.resustainability.reisp.constants.PageConstants;
 import com.resustainability.reisp.dao.IRMDao;
 import com.resustainability.reisp.model.Att;
+import com.resustainability.reisp.model.AttendanceDto;
+import com.resustainability.reisp.model.AttendanceRegularizationDTO;
+import com.resustainability.reisp.model.DataTableResponse;
 import com.resustainability.reisp.model.IRM;
 import com.resustainability.reisp.model.IRMPaginationObject;
+import com.resustainability.reisp.model.MissedPunchRequest;
 import com.resustainability.reisp.model.PunchRecord;
 import com.resustainability.reisp.model.RawPunch;
 import com.resustainability.reisp.model.Shift;
 import com.resustainability.reisp.model.User;
 import com.resustainability.reisp.model.UserPaginationObject;
+import com.resustainability.reisp.service.AttendanceService;
 import com.resustainability.reisp.service.IRMService;
 import com.resustainability.reisp.service.IRMService;
 import org.apache.poi.ss.usermodel.*;
@@ -120,7 +132,7 @@ public class IRMController {
 	
 	@RequestMapping(value = "/att", method = {RequestMethod.POST, RequestMethod.GET})
 	public ModelAndView irm(@ModelAttribute User user,IRM obj, HttpSession session) {
-		ModelAndView model = new ModelAndView(PageConstants.irmMain);
+		ModelAndView model = new ModelAndView(PageConstants.homeAtt);
 		String userId = null;
 		String userName = null;
 		String role = null;
@@ -129,14 +141,155 @@ public class IRMController {
 			userName = (String) session.getAttribute("USER_NAME");
 			role = (String) session.getAttribute("BASE_ROLE");
 			obj.setUser(userId);
-			obj.setRole(role);
+			obj.setRole(role); 
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			e.printStackTrace(); 
 		}
 		return model;
 	}
+	  private final AttendanceService attendanceService;
+
+	    @Autowired
+	    public IRMController(AttendanceService attendanceService) {
+	        this.attendanceService = attendanceService;
+	    }
+	@RequestMapping("/attendance/data")
+	@ResponseBody
+	public DataTableResponse getAttendanceData(
+	        @RequestParam("draw") int draw,
+	        @RequestParam("start") int start,
+	        @RequestParam("length") int length,
+	        @RequestParam("empCode") String empCode,
+	        @RequestParam("fromDate") String fromDate,
+	        @RequestParam("toDate") String toDate) {
+
+	    // Call your optimized query method, passing empCode, fromDate, toDate, start, and length
+	    List<AttendanceDto> data = attendanceService.getPaginatedAttendance(empCode, fromDate, toDate, start, length);
+	    int totalRecords = attendanceService.getTotalAttendanceCount(empCode, fromDate, toDate);
+
+	    DataTableResponse response = new DataTableResponse();
+	    response.setDraw(draw);
+	    response.setRecordsTotal(totalRecords);
+	    response.setRecordsFiltered(totalRecords);
+	    response.setData(data);
+	    return response;
+	}
+	@RequestMapping("/attendance/reload")
+	@ResponseBody
+	public String reloadAttendance(@RequestParam String fromDate,
+	                               @RequestParam String toDate,
+	                               @RequestParam String areaAlias) {
+	    new Thread(() -> {
+	        try {
+	            attendanceService.reloadAndInsertAttendance(fromDate, toDate, areaAlias);
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }).start();
+	    return "Attendance reload started. This may take a few minutes.";
+	}
 	
+	
+	@RequestMapping("/getAllMissedPunches")
+	@ResponseBody
+	 public ResponseEntity<?> getAllMissedPunches(@RequestBody MissedPunchRequest request) {
+        try {
+            List<AttendanceDto> missedPunches = attendanceService.getAllMissedPunches(
+                request.getEmpCode(),
+                request.getFromDate() != null ? LocalDate.parse(request.getFromDate()) : null,
+                request.getToDate() != null ? LocalDate.parse(request.getToDate()) : null,
+                request.getAreaAlias(),
+                true 
+            );
+            return ResponseEntity.ok(missedPunches);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", "Error fetching missed punches: " + e.getMessage()));
+        }
+    }
+    
+	@RequestMapping("/downloadMissedPunches")
+    public void downloadMissedPunches1(@RequestBody List<AttendanceDto> missedPunches, 
+                                    HttpServletResponse response) throws IOException {
+        attendanceService.downloadMissedPunches(missedPunches, response);
+    }
+
+
+	@RequestMapping("/regularize")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> regularizeAttendance(@RequestParam("file") MultipartFile file) {
+        Map<String, String> response = new HashMap<>();
+        
+        try {
+            // Parse the Excel file and validate data
+            List<AttendanceRegularizationDTO> regularizationData = parseRegularizationFile(file);
+            
+            // Process each record and update attendance
+            for (AttendanceRegularizationDTO data : regularizationData) {
+                // Validate and update attendance records
+                attendanceService.regularizeAttendance(data);
+            }
+            
+            response.put("message", "Attendance regularized successfully for " + regularizationData.size() + " records");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("message", "Error regularizing attendance: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+    
+    private List<AttendanceRegularizationDTO> parseRegularizationFile(MultipartFile file) throws IOException {
+        List<AttendanceRegularizationDTO> dataList = new ArrayList<>();
+        
+        try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0);
+            
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+                
+                AttendanceRegularizationDTO dto = new AttendanceRegularizationDTO();
+                dto.setEmpCode(row.getCell(0).getStringCellValue());
+                dto.setWorkDate(row.getCell(1).getStringCellValue());
+                dto.setCheckIn(row.getCell(2).getStringCellValue());
+                dto.setCheckOut(row.getCell(3).getStringCellValue());
+                dto.setTotalHours(row.getCell(4).getStringCellValue());
+                dto.setOtHours(row.getCell(5).getStringCellValue());
+                dto.setStatus(row.getCell(6).getStringCellValue());
+                
+                dataList.add(dto);
+            }
+        }
+        
+        return dataList;
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
 	@RequestMapping(value = "/api/regularisePunch", method = {RequestMethod.POST, RequestMethod.GET})
 	public ModelAndView regularisePunch(@ModelAttribute List<Att> attendanceList, RedirectAttributes attributes,HttpSession session) {
 		boolean flag = false;
@@ -183,13 +336,13 @@ public class IRMController {
 			obj.setTo_date(DateParser.parse(obj.getTo_date()));
 			//companiesList = service.getEmployeeAttendance1(obj, obj.getFrom_date(), obj.getTo_date(), obj.getEmp_code(), obj.getArea_name());
 
-		companiesList = service.getEmployeeAttendance(obj, obj.getFrom_date(), obj.getTo_date(), obj.getEmp_code(), obj.getArea_name());
-			 // Step 1: Fetch raw data from DB
+		companiesList  = service.getEmployeeAttendance(obj, obj.getFrom_date(), obj.getTo_date(), obj.getEmp_code(), obj.getArea_name());
+			 // Step 1: Fetch raw data from DB 
 		  //  List<PunchRecord> rawPunches = service.getRawPunches(obj.getFrom_date(), obj.getTo_date(), obj.getEmp_code(), obj.getArea_name());
 
-		  //  processPunches(rawPunches);
+		  //  processPunches(rawPunches); 
 		}catch (Exception e) {
-			e.printStackTrace();
+			e.printStackTrace();  
 			logger.error("getIRMList : " + e.getMessage());
 		}
 		return companiesList;

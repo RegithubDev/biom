@@ -609,7 +609,82 @@ display:none!important;
         <div class="mt-2 small text-muted">
             <i class="fas fa-info-circle me-1"></i> Please select date range and click search to view data
         </div>
+        
+        <!-- Add Request Button -->
+<div class="mt-3">
+  <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#newRequestModal">
+    <i class="fas fa-plus me-1"></i> Add Request
+  </button>
+</div>
+
     </div>
+</div>
+                  
+                  <!-- New Add Request Modal -->
+<div class="modal fade" id="newRequestModal" tabindex="-1" aria-labelledby="newRequestModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+    
+      <div class="modal-header">
+        <h5 class="modal-title" id="newRequestModalLabel">New Request</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label>Employee Name</label>
+            <input type="text" class="form-control" id="new-emp-name" name="employee_name">
+          </div>
+          <div class="col-md-4">
+            <label>Employee Code</label>
+            <input type="text" class="form-control" id="new-emp-code" name="emp_code">
+          </div>
+          <div class="col-md-4">
+            <label>Department</label>
+            <input type="text" class="form-control" id="new-department" name="department">
+          </div>
+        </div>
+        
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <label>Work Date</label>
+            <input type="date" class="form-control" id="new-work-date" name="work_date">
+          </div>
+          <div class="col-md-4">
+            <label>Punch In Time</label>
+            <input type="datetime-local" class="form-control" id="new-punch-in" name="punch_in">
+          </div>
+          <div class="col-md-4">
+            <label>Punch Out Time</label>
+            <input type="datetime-local" class="form-control" id="new-punch-out" name="punch_out">
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label>Total Duration</label>
+            <input type="text" class="form-control" id="new-total-duration" name="total_duration">
+          </div>
+          <div class="col-md-6">
+            <label>Overtime</label>
+            <input type="text" class="form-control" id="new-ot" name="overtime">
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label>Reason</label>
+          <textarea class="form-control" id="new-reason" name="reason" rows="2"></textarea>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-success" id="new-request-submit">Submit</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+
+    </div>
+  </div>
 </div>
                             
                             <!-- Premium Dropdowns -->
@@ -1443,18 +1518,23 @@ display:none!important;
         $('#reg-confirm-btn').data('emp-data', emp);
     });
     function convertToDatetimeLocal(raw) {
-        if (!raw) return '';
-        // Split format: "May 29 - 06:05:59"
-        const [monthDay, time] = raw.split(' - ');
-        const [month, day] = monthDay.split(' ');
-        const monthIndex = new Date(month+' 1, 2025').getMonth() + 1; // Convert month name to index
-        const formattedMonth = monthIndex.toString().padStart(2, '0');
-        const formattedDay = day.padStart(2, '0');
-        const formattedTime = time.slice(0, 5); // Only HH:mm
+        if (!raw || !raw.includes(' - ')) return '';
 
-        // Format: "2025-MM-DDTHH:mm"
-        return '2025-'+formattedMonth+'-'+formattedDay+'T'+formattedTime;
+        const [monthDay, time] = raw.split(' - ');
+
+        // Use regex to extract month and day
+        const match = monthDay.match(/^([A-Za-z]+)\s*(\d{1,2})$/);
+        if (!match) return '';
+
+        const [, month, day] = match;
+        const monthIndex = new Date(`${month} 1, 2025`).getMonth() + 1;
+        const formattedMonth = monthIndex.toString().padStart(2, '0');
+        const formattedDay = day.toString().padStart(2, '0');
+        const formattedTime = time?.slice(0, 5) || '00:00';
+
+        return `2025-${formattedMonth}-${formattedDay}T${formattedTime}`;
     }
+
 
     // Calculate duration on punch time input change
     $('#reg-punch-time-in, #reg-punch-time-out').on('change', function () {
@@ -2471,6 +2551,23 @@ display:none!important;
     	        alert("An error occurred.");
     	    });
     	});
+    	
+    	 document.getElementById("new-punch-in").addEventListener("change", calculateDuration);
+    	  document.getElementById("new-punch-out").addEventListener("change", calculateDuration);
+
+    	  function calculateDuration() {
+    	    const inTime = new Date(document.getElementById("new-punch-in").value);
+    	    const outTime = new Date(document.getElementById("new-punch-out").value);
+
+    	    if (!isNaN(inTime) && !isNaN(outTime) && outTime > inTime) {
+    	      const diffMs = outTime - inTime;
+    	      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    	      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    	      document.getElementById("new-total-duration").value = `${hours}h ${minutes}m`;
+    	    } else {
+    	      document.getElementById("new-total-duration").value = "";
+    	    }
+    	  }
 </script>
     <script async>
         var link = document.createElement('link');
