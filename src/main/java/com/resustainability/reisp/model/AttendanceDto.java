@@ -14,9 +14,21 @@ public class AttendanceDto {
 	private String holidayReason;
 	private String overtime;
 	private String finalOT;
-	private String remarks;
+	private String remarks,leave_reason,is_leave;
 
-    public String getEmployeeName() {
+    public String getLeave_reason() {
+		return leave_reason;
+	}
+	public void setLeave_reason(String leave_reason) {
+		this.leave_reason = leave_reason;
+	}
+	public String getIs_leave() {
+		return is_leave;
+	}
+	public void setIs_leave(String is_leave) {
+		this.is_leave = is_leave;
+	}
+	public String getEmployeeName() {
 		return employeeName;
 	}
 	public void setEmployeeName(String employeeName) {
