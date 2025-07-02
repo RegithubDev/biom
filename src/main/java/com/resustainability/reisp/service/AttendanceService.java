@@ -8,6 +8,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
 import com.resustainability.reisp.model.AttendanceDto;
+import com.resustainability.reisp.model.AttendanceRegularizationDTO;
 import com.resustainability.reisp.model.EmployeeDto;
 
 public interface AttendanceService {
@@ -18,4 +19,6 @@ public interface AttendanceService {
 		List<AttendanceDto> getAllMissedPunches(String empCode, LocalDate fromDate, LocalDate toDate, 
                 String areaAlias, boolean onlyMissed);
 		void downloadMissedPunches(List<AttendanceDto> missedPunches, HttpServletResponse response) throws IOException;
+
+//	void regularizeAttendance(AttendanceRegularizationDTO data);
 }
