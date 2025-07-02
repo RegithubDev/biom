@@ -4,6 +4,8 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+
+import com.resustainability.reisp.model.AttendanceRegularizationDTO;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -101,7 +103,12 @@ public class AttendanceServiceImpl implements AttendanceService {
             workbook.write(response.getOutputStream());
         }
     }
-    
+
+    @Override
+    public void regularizeAttendance(AttendanceRegularizationDTO data) {
+        // TODO
+    }
+
     private CellStyle createHeaderStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();

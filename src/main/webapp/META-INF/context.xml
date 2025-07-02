@@ -1,0 +1,14 @@
+<Context>
+    <Resource name="jdbc/INOPSETPDB"
+              auth="Container"
+              type="javax.sql.DataSource"
+              factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
+              driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+              url="jdbc:sqlserver://localhost:1433;databaseName=INOPSETPDB"
+              username="biom_app"
+              password="Strong!Pass123"
+              maxActive="20"
+              maxIdle="10"
+              testOnBorrow="true"
+              validationQuery="SELECT 1"/>
+</Context>

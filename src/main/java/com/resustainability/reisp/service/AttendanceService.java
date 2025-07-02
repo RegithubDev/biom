@@ -20,5 +20,5 @@ public interface AttendanceService {
                 String areaAlias, boolean onlyMissed);
 		void downloadMissedPunches(List<AttendanceDto> missedPunches, HttpServletResponse response) throws IOException;
 
-//	void regularizeAttendance(AttendanceRegularizationDTO data);
+	void regularizeAttendance(AttendanceRegularizationDTO data);
 }
