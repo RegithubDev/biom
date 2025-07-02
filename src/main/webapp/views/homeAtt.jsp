@@ -341,7 +341,7 @@
 <div class="container-fluid">
     <!-- BEGIN: Header-->
     <jsp:include page="../views/layout/header.jsp"></jsp:include> 
-    <jsp:include page="../views/layout/menu.jsp"></jsp:include> 
+    <jsp:include page="../views/layout/menu.jsp"></jsp:include>
 
     <div class="row">
         <div class="col-lg-12">
@@ -534,79 +534,7 @@
    <div class="modal fade" id="applyLeaveModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="applyLeaveForm">
-                <div class="modal-header">
-                    <h5 class="modal-title">Apply Leave</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="leaveEmp" class="form-label">Employee</label>
-                        <select class="form-select" id="leaveEmp" name="empCode" required></select>
-                    </div>
-
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="multiDayCheckbox">
-                        <label class="form-check-label" for="multiDayCheckbox">Apply for multiple days</label>
-                    </div>
-
-                    <!-- From/To Dates (Visible if multi-day selected) -->
-                    <div class="mb-3 multi-day-section d-none">
-                        <label for="leaveFrom" class="form-label">From Date</label>
-                        <input type="date" id="leaveFrom" name="from_date" class="form-control">
-                    </div>
-                    <div class="mb-3 multi-day-section d-none">
-                        <label for="leaveTo" class="form-label">To Date</label>
-                        <input type="date" id="leaveTo" name="to_date" class="form-control">
-                    </div>
-
-                    <!-- Single Day Section -->
-                    <div class="mb-3 single-day-section">
-                        <label for="leaveDate" class="form-label">Leave Date</label>
-                        <input type="date" id="leaveDate" name="work_date" class="form-control">
-                    </div>
-
-                    <div class="mb-3 single-day-section">
-                        <label class="form-label d-block">Duration</label>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="duration" id="fullDay" value="Full" checked>
-                            <label class="form-check-label" for="fullDay">Full Day</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="duration" id="halfDay" value="Half">
-                            <label class="form-check-label" for="halfDay">Half Day</label>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 single-day-section half-day-options d-none">
-                        <label for="halfType" class="form-label">Half Day Type</label>
-                        <select id="halfType" name="half_day_type" class="form-select">
-                            <option value="First Half">First Half</option>
-                            <option value="Second Half">Second Half</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="leaveType" class="form-label">Leave Type</label>
-                        <select id="leaveType" name="leave_reason" class="form-select">
-                            <option value="SL">Sick Leave</option>
-                            <option value="CL">Casual Leave</option>
-                            <option value="EL">Earned Leave</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="leaveRemarks" class="form-label">Remarks</label>
-                        <textarea id="leaveRemarks" name="remarks" class="form-control"></textarea>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="submit" id="submitLeaveBtn" class="btn btn-primary">Apply</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </form>
+            <jsp:include page="/views/fragments/leaveModal.jsp" />
         </div>
     </div>
 </div>

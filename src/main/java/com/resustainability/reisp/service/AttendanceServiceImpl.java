@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.resustainability.reisp.model.AttendanceRegularizationDTO;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddressList;
@@ -42,7 +43,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.resustainability.reisp.common.DateParser;
 import com.resustainability.reisp.dao.AttendanceDAO;
+import com.resustainability.reisp.dto.EmployeeMeta;
 import com.resustainability.reisp.model.AttendanceDayDTO;
 import com.resustainability.reisp.model.AttendanceDto;
 import com.resustainability.reisp.model.AttendanceExportDTO;
@@ -115,11 +118,6 @@ public class AttendanceServiceImpl implements AttendanceService {
             
             workbook.write(response.getOutputStream());
         }
-    }
-
-    @Override
-    public void regularizeAttendance(AttendanceRegularizationDTO data) {
-        // TODO
     }
 
     private CellStyle createHeaderStyle(Workbook workbook) {
@@ -236,6 +234,12 @@ public class AttendanceServiceImpl implements AttendanceService {
 		  return attendanceDAO.applyLeave(dto,userId);
 		
 	}
+	
+	@Override
+	public Object v2ApplyLeave(AttendanceLeaveDTO dto, String userId) {
+        return attendanceDAO.v2ApplyLeave(dto, userId);
+	}
+	
 	@Override
 	public Object addAttendance(AttendanceDto data, String userId) {
 		 return attendanceDAO.addAttendance(data,userId);
