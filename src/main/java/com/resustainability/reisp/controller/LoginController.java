@@ -67,7 +67,16 @@ public class LoginController {
 		}
 		return model;
 	}
-	
+	@RequestMapping(value = "/proxy", method = {RequestMethod.POST, RequestMethod.GET})
+	public ModelAndView proxy(@ModelAttribute User user, HttpSession session,HttpServletRequest request) {
+		ModelAndView model = new ModelAndView(PageConstants.proxy);
+		try {
+			 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return model;
+	}
 	
 	@RequestMapping(value = "/login", method = {RequestMethod.POST, RequestMethod.GET})
 	public ModelAndView login(@ModelAttribute User user, HttpSession session,HttpServletRequest request,RedirectAttributes attributes) {
@@ -108,16 +117,6 @@ public class LoginController {
 						//model.addObject("multipleLoginFound","Multiple Login found! You have been Logged out from all Devices");
 						//model.setViewName(PageConstants.login); 
 					//}
-				}else{
-					model.addObject("invalidEmail",invalidUserName);
-					model.setViewName(PageConstants.newUserLogin);
-				
-					
-					List<User> userList = service.getUserFilterList(null);
-					model.addObject("userList", userList);
-					
-					model.addObject("email", user.getEmail_id());
-					model.addObject("name", user.getUser_name());
 				}
 			}else {
 				model.addObject("message", "");

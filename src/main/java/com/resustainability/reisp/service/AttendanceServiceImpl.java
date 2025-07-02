@@ -3,7 +3,12 @@ package com.resustainability.reisp.service;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -36,7 +41,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.resustainability.reisp.dao.AttendanceDAO;
+import com.resustainability.reisp.model.AttendanceDayDTO;
 import com.resustainability.reisp.model.AttendanceDto;
+import com.resustainability.reisp.model.AttendanceExportDTO;
+import com.resustainability.reisp.model.AttendanceLeaveDTO;
+import com.resustainability.reisp.model.AttendanceRegularizationDTO;
 import com.resustainability.reisp.model.EmployeeDto;
 
 @Service
@@ -45,13 +54,17 @@ public class AttendanceServiceImpl implements AttendanceService {
     private AttendanceDAO attendanceDAO;
 
     @Override
-    public List<AttendanceDto> getPaginatedAttendance(String empCode, String fromDate, String toDate, int start, int length) {
-        return attendanceDAO.fetchPaginatedAttendance(empCode, fromDate, toDate, start, length);
+    public List<AttendanceDto> getPaginatedAttendance(String empCode, String fromDate, String toDate, int start, int length, String searchValue) {
+        return attendanceDAO.fetchPaginatedAttendance(empCode, fromDate, toDate, start, length, searchValue);
     }
-
+	@Override
+	public Object regularizeAttendance(AttendanceRegularizationDTO data, String userId) {
+		  return attendanceDAO.regularizeAttendance(data,userId);
+		
+	}
     @Override
-    public int getTotalAttendanceCount(String empCode, String fromDate, String toDate) {
-        return attendanceDAO.fetchTotalAttendanceCount(empCode, fromDate, toDate);
+    public int getTotalAttendanceCount(String empCode, String fromDate, String toDate,String searchValue) {
+        return attendanceDAO.fetchTotalAttendanceCount(empCode, fromDate, toDate, searchValue);
     }
 
     @Override
@@ -211,4 +224,56 @@ public class AttendanceServiceImpl implements AttendanceService {
             sheet.autoSizeColumn(i);
         }
     }
+	@Override
+	public Object applyLeave(AttendanceLeaveDTO dto, String userId) {
+		  return attendanceDAO.applyLeave(dto,userId);
+		
+	}
+	@Override
+	public Object addAttendance(AttendanceDto data, String userId) {
+		 return attendanceDAO.addAttendance(data,userId);
+		
+	}
+	@Override
+	public List<EmployeeDto> getEligibleEmployees() {
+		 return attendanceDAO.getEligibleEmployees();
+	}
+	@Override
+	public List<AttendanceExportDTO> getExportData(String fromDate, String toDate) {
+	    List<AttendanceExportDTO> flatList = attendanceDAO.getExportData(fromDate, toDate);
+
+	    Map<String, AttendanceExportDTO> uniqueEmployees = new LinkedHashMap<>();
+	    Map<String, Map<LocalDate, AttendanceDayDTO>> empDailyMap = new HashMap<>();
+
+	    for (AttendanceExportDTO flat : flatList) {
+	        String key = flat.getEmpCode();
+
+	        if (!uniqueEmployees.containsKey(key)) {
+	            AttendanceExportDTO main = new AttendanceExportDTO();
+	            main.setEmpCode(flat.getEmpCode());
+	            main.setEmployeeName(flat.getEmployeeName());
+	            uniqueEmployees.put(key, main);
+	            empDailyMap.put(key, new HashMap<>());
+	        }
+
+	        AttendanceDayDTO day = new AttendanceDayDTO();
+	        day.setDate(flat.getWorkDate());
+	        day.setInTime(flat.getInTime());
+	        day.setOutTime(flat.getOutTime());
+	        day.setWorkedHours(flat.getTotalWorkingHours());
+	        day.setOtHours(flat.getOtHours());
+	        day.setStatus(flat.getAttendanceStatus());
+	        day.setLeaveType(flat.getLeaveReason());
+
+	        empDailyMap.get(key).put(flat.getWorkDate(), day);
+	    }
+
+	    for (String empCode : uniqueEmployees.keySet()) {
+	        AttendanceExportDTO emp = uniqueEmployees.get(empCode);
+	        emp.setDailyAttendanceMap(empDailyMap.get(empCode));
+	    }
+
+	    return new ArrayList<>(uniqueEmployees.values());
+	}
+
 }

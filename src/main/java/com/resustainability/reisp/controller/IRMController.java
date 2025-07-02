@@ -1,5 +1,6 @@
 package com.resustainability.reisp.controller;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -50,6 +51,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -70,15 +72,20 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpHeaders;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.resustainability.reisp.common.DateParser;
+import com.resustainability.reisp.common.ExportUtil;
 import com.resustainability.reisp.constants.PageConstants;
 import com.resustainability.reisp.dao.IRMDao;
 import com.resustainability.reisp.model.Att;
 import com.resustainability.reisp.model.AttendanceDto;
+import com.resustainability.reisp.model.AttendanceExportDTO;
+import com.resustainability.reisp.model.AttendanceLeaveDTO;
 import com.resustainability.reisp.model.AttendanceRegularizationDTO;
 import com.resustainability.reisp.model.DataTableResponse;
+import com.resustainability.reisp.model.EmployeeDto;
 import com.resustainability.reisp.model.IRM;
 import com.resustainability.reisp.model.IRMPaginationObject;
 import com.resustainability.reisp.model.MissedPunchRequest;
@@ -94,7 +101,6 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.InputStream;
 @RestController
 public class IRMController {
@@ -157,6 +163,7 @@ public class IRMController {
 	@RequestMapping("/attendance/data")
 	@ResponseBody
 	public DataTableResponse getAttendanceData(
+			@RequestParam("search[value]") String searchValue,
 	        @RequestParam("draw") int draw,
 	        @RequestParam("start") int start,
 	        @RequestParam("length") int length,
@@ -165,8 +172,8 @@ public class IRMController {
 	        @RequestParam("toDate") String toDate) {
 
 	    // Call your optimized query method, passing empCode, fromDate, toDate, start, and length
-	    List<AttendanceDto> data = attendanceService.getPaginatedAttendance(empCode, fromDate, toDate, start, length);
-	    int totalRecords = attendanceService.getTotalAttendanceCount(empCode, fromDate, toDate);
+	    List<AttendanceDto> data = attendanceService.getPaginatedAttendance(empCode, fromDate, toDate, start, length,searchValue);
+	    int totalRecords = attendanceService.getTotalAttendanceCount(empCode, fromDate, toDate,searchValue);
 
 	    DataTableResponse response = new DataTableResponse();
 	    response.setDraw(draw);
@@ -214,30 +221,88 @@ public class IRMController {
                                     HttpServletResponse response) throws IOException {
         attendanceService.downloadMissedPunches(missedPunches, response);
     }
+	@RequestMapping("/attendance/add")
+	@ResponseBody
+	public ResponseEntity<String> addAttendance(@RequestBody AttendanceDto data, HttpSession session) {
+	    try {
+	        String userId = (String) session.getAttribute("USER_ID");
+	        attendanceService.addAttendance(data, userId);
+	        return ResponseEntity.ok("Attendance submitted");
+	    } catch (Exception e) {
+	    	e.printStackTrace();
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+	    }
+	}
+	
+	
+	@RequestMapping(value = "/attendance/export", method = RequestMethod.GET)
+	public ResponseEntity<InputStreamResource> exportExcel(
+	        @RequestParam String fromDate,
+	        @RequestParam String toDate) throws IOException {
 
+	    List<AttendanceExportDTO> data = attendanceService.getExportData(fromDate, toDate);
+	    List<LocalDate> allDates = com.resustainability.reisp.common.DateUtil.getDatesBetween(fromDate, toDate);
 
-	@RequestMapping("/regularize")
-    @ResponseBody
-    public ResponseEntity<Map<String, String>> regularizeAttendance(@RequestParam("file") MultipartFile file) {
-        Map<String, String> response = new HashMap<>();
-        
-        try {
-            // Parse the Excel file and validate data
-            List<AttendanceRegularizationDTO> regularizationData = parseRegularizationFile(file);
-            
-            // Process each record and update attendance
-            for (AttendanceRegularizationDTO data : regularizationData) {
-                // Validate and update attendance records
-                attendanceService.regularizeAttendance(data);
-            }
-            
-            response.put("message", "Attendance regularized successfully for " + regularizationData.size() + " records");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("message", "Error regularizing attendance: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
-    }
+	    ByteArrayInputStream stream = ExportUtil.exportToExcel(data, allDates);
+
+	    HttpHeaders headers = new HttpHeaders();
+	    headers.add("Content-Disposition", "attachment; filename=Attendance_Report.xlsx");
+
+	    return ResponseEntity.ok()
+	            .headers(headers)
+	            .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+	            .body(new InputStreamResource(stream));
+	}
+	
+	@RequestMapping("/attendance/leave")
+	@ResponseBody
+	public ResponseEntity<String> applyLeave(@RequestBody AttendanceLeaveDTO dto, HttpSession session) {
+	    try {
+	        String userId = (String) session.getAttribute("USER_ID");
+	        attendanceService.applyLeave(dto, userId);
+	        return ResponseEntity.ok("Leave applied successfully");
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+	    }
+	}
+	@RequestMapping("/attendance/employees")
+	@ResponseBody
+	public ResponseEntity<List<EmployeeDto>> getEligibleEmployees() {
+	    try {
+	        List<EmployeeDto> employees = attendanceService.getEligibleEmployees();
+	        return ResponseEntity.ok(employees);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+		return null;
+	}
+
+	@RequestMapping("/attendance/regularize")
+	@ResponseBody
+	public ResponseEntity<Map<String, String>> regularizeAttendance(
+	        @RequestBody AttendanceRegularizationDTO data,
+	        HttpSession session) {
+
+	    Map<String, String> response = new HashMap<>();
+	    try {
+	        String userId = (String) session.getAttribute("USER_ID");
+	        if (userId == null) {
+	            response.put("message", "User not logged in");
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+	        }
+
+	        attendanceService.regularizeAttendance(data, userId);
+
+	        response.put("message", "Attendance regularized successfully");
+	        return ResponseEntity.ok(response);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.put("message", "Error regularizing attendance: " + e.getMessage());
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	    }
+	}
+
     
     private List<AttendanceRegularizationDTO> parseRegularizationFile(MultipartFile file) throws IOException {
         List<AttendanceRegularizationDTO> dataList = new ArrayList<>();

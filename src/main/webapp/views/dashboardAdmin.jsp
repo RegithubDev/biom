@@ -75,6 +75,42 @@ License: You must have a valid license purchased only from themeforest(the above
 .modal {
     width: 100% !important;
 }
+.construction-icon {
+    position: relative;
+    height: 150px;
+    margin-bottom: 2rem;
+  }
+  
+  .gear-large {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  .gear-medium {
+    position: absolute;
+    top: 30%;
+    right: 20%;
+  }
+  
+  .gear-small {
+    position: absolute;
+    bottom: 20%;
+    left: 25%;
+  }
+  
+  .hammer {
+    position: absolute;
+    bottom: 10%;
+    right: 20%;
+    transform-origin: bottom center;
+  }
+  
+  .progress {
+    height: 10px;
+    border-radius: 5px;
+  }
 </style>
   </head>
   <!-- END: Head-->
@@ -121,20 +157,56 @@ License: You must have a valid license purchased only from themeforest(the above
     </div>    <!-- END: Main Menu-->
 
     <!-- BEGIN: Content-->
-    <div class="app-content content ">
-      <div class="content-overlay"></div>
-      <div class="header-navbar-shadow"></div>
-      <div class="content-wrapper container-xxl p-0">
-     
-        <div class="content-body"><!-- Dashboard Ecommerce Starts -->
-   
-   
-   
-   
-   
+   <div class="app-content content">
+  <div class="content-overlay"></div>
+  <div class="header-navbar-shadow"></div>
+  <div class="content-wrapper container-xxl p-0">
+    <div class="content-body">
+      <!-- Under Construction Animation -->
+      <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6 text-center py-5">
+          <div class="construction-container animate__animated animate__fadeIn">
+            <div class="construction-icon mb-4">
+              <div class="gear-large animate__animated animate__rotateIn animate__infinite animate__slower">
+                <i class="fas fa-cog fa-4x text-primary"></i>
+              </div>
+              <div class="gear-medium animate__animated animate__rotateIn animate__infinite animate__slow">
+                <i class="fas fa-cog fa-3x text-warning"></i>
+              </div>
+              <div class="gear-small animate__animated animate__rotateIn animate__infinite">
+                <i class="fas fa-cog fa-2x text-danger"></i>
+              </div>
+              <div class="hammer animate__animated animate__swing animate__infinite animate__slow">
+                <i class="fas fa-hammer fa-2x text-secondary"></i>
+              </div>
+            </div>
+            
+            <h2 class="text-primary mb-3 animate__animated animate__pulse animate__infinite">
+              <i class="fas fa-hard-hat me-2"></i> Under Construction
+            </h2>
+            
+            <p class="lead text-muted mb-4 animate__animated animate__fadeInUp">
+              We're working hard to bring you something amazing!<br>
+              Please check back soon.
+            </p>
+            
+            <div class="progress animate__animated animate__fadeInUp animate__delay-1s">
+              <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                   role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            
+            <div class="countdown mt-4 animate__animated animate__fadeInUp animate__delay-2s">
+              <p class="small text-muted">
+                <i class="far fa-clock me-1"></i> Estimated launch: 
+                <span class="fw-bold">30 days</span>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+  </div>
+</div>
     <!-- END: Content-->
 
 
