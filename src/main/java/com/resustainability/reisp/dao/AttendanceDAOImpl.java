@@ -25,6 +25,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.resustainability.reisp.model.AttendanceDto;
 import com.resustainability.reisp.model.AttendanceExportDTO;
@@ -717,6 +720,7 @@ public class AttendanceDAOImpl  implements AttendanceDAO {
     }
     
     @Override
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED)
     public Object v2ApplyLeave(AttendanceLeaveDTO dto, String userId) {
         if (dto.isHalfDay() && StringUtils.isBlank(dto.getHalfDaySlot())) {
         	throw new IllegalArgumentException("Specify half day slot: First Half, Second Half");
@@ -749,27 +753,31 @@ public class AttendanceDAOImpl  implements AttendanceDAO {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
        
-        return jdbcTemplate.batchUpdate(query, new BatchPreparedStatementSetter() {
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setString(1, employeeMeta.areaName());
-                ps.setString(2, employeeMeta.positionName());
-                ps.setString(3, employeeMeta.employeeCode());
-                ps.setString(4, employeeMeta.employeeName());
-                ps.setString(5, days.get(i)); // work_date
-                ps.setString(6, "Leave");
-                ps.setString(7, "1"); // is_leave
-                ps.setString(8, dto.getLeaveType());
-                ps.setString(9, leaveDuration);
-                ps.setString(10, leaveHalfSlot);
-                ps.setString(11, "1"); // is_regularised
-                ps.setString(12, userId);
-                ps.setString(13, dto.getRemarks());
-            }
-
-            public int getBatchSize() {
-                return days.size();
-            }
-        });
+        try {
+	        return jdbcTemplate.batchUpdate(query, new BatchPreparedStatementSetter() {
+	            public void setValues(PreparedStatement ps, int i) throws SQLException {
+	                ps.setString(1, employeeMeta.areaName());
+	                ps.setString(2, employeeMeta.positionName());
+	                ps.setString(3, employeeMeta.employeeCode());
+	                ps.setString(4, employeeMeta.employeeName());
+	                ps.setString(5, days.get(i)); // work_date
+	                ps.setString(6, "Leave");
+	                ps.setString(7, "1"); // is_leave
+	                ps.setString(8, dto.getLeaveType());
+	                ps.setString(9, leaveDuration);
+	                ps.setString(10, leaveHalfSlot);
+	                ps.setString(11, "1"); // is_regularised
+	                ps.setString(12, userId);
+	                ps.setString(13, dto.getRemarks());
+	            }
+	
+	            public int getBatchSize() {
+	                return days.size();
+	            }
+	        });
+        } catch (Exception exception) {
+        	throw new RuntimeException("Something went wrong while applying for leave");
+        }
     }
 
     public Optional<EmployeeMeta> fetchEmployeeMeta(String employeeCode) {
