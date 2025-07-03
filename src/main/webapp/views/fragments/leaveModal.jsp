@@ -64,13 +64,31 @@
         </div>
 
         <!-- Half-day sub-options -->
-        <div id="halfDayBlock" class="mt-3 d-none">
-          <label for="halfType" class="form-label">Select half -</label>
-          <select id="halfType" class="form-select w-auto g-3 d-inline-block">
-            <option value="FIRST">First Half</option>
-            <option value="SECOND">Second Half</option>
-          </select>
-        </div>
+		<div id="halfDayBlock" class="mt-3 d-none">
+		  <div class="row g-3 align-items-end">
+		    <!-- Half-day selector -->
+		    <div class="col-12 col-md">
+		      <label for="halfType" class="form-label">Select Slot</label>
+		      <select id="halfType" class="form-select">
+		        <option value="FIRST">First Half</option>
+		        <option value="SECOND">Second Half</option>
+		      </select>
+		    </div>
+		
+		    <!-- Check-In -->
+		    <div class="col-12 col-md">
+		      <label for="checkInTime" class="form-label">Check-In Time</label>
+		      <input type="text" id="checkInWorkTime" class="form-control time-picker" placeholder="HH:MM" data-input required>
+		    </div>
+		
+		    <!-- Check-Out -->
+		    <div class="col-12 col-md">
+		      <label for="checkOutTime" class="form-label">Check-Out Time</label>
+		      <input type="text" id="checkOutWorkTime" class="form-control time-picker" placeholder="HH:MM" data-input required>
+		    </div>
+		  </div>
+		</div>
+
       </fieldset>
     </div>
 
@@ -100,105 +118,119 @@
 
 <!-- JS (leave-form) -->
 <script>
-(() => {
-  const $form = $('#applyLeaveForm');
-  const $toggle = $('#multiDayToggle');
-  const $durationRad = $('input[name="duration"]');
-  const $halfBlock = $('#halfDayBlock');
+$(() => {
+  /* ---------- cached selectors ---------- */
+  const $form        = $('#applyLeaveForm');
+  const $toggleMulti = $('#multiDayToggle');
+  const $duration    = $('input[name="duration"]');
+  const $halfBlock   = $('#halfDayBlock');
+  const $timeInputs  = $('#checkInWorkTime, #checkOutWorkTime');
+  const $checkInTime = $('#checkInWorkTime');
+  const $checkOutTime = $('#checkOutWorkTime');
+  const $multiOnly   = $('.multi-only');
+  const $singleOnly  = $('.single-only');
 
-  /* visibility helpers */
-  const syncBlocks = () => {
-    const multi = $toggle.prop('checked');
-    $('.multi-only').toggleClass('d-none', !multi);
-    $('.single-only').toggleClass('d-none',  multi);
-    // if we just switched to multi-day, hide half-block unconditionally
+  /* ---------- UI helpers ---------- */
+  // Utility to merge date and time: yyyy-mm-dd + hh:mm  =>  yyyy-mm-ddThh:mm
+  function isoDateTime(dateId, timeId) {
+	  const d = $(dateId).val()?.trim();
+	  const t = $(timeId).val()?.trim();
+
+	  if (!d || !t) {
+	    return "";
+	  }
+	  
+	  return d + "T" + t;
+  }
+  
+  const toggleViews = () => {
+    const multi = $toggleMulti.is(':checked');
+    $multiOnly.toggleClass('d-none', !multi);
+    $singleOnly.toggleClass('d-none',  multi);
     if (multi) $halfBlock.addClass('d-none');
   };
 
-  const syncHalfBlock = () => {
-    const half = $('#halfDay').prop('checked');
-    $halfBlock.toggleClass('d-none', !half);
-  };
-  
-  const closeModal = () => {
-      $('#applyLeaveModal').modal('hide');
-   	  $('body').removeClass('modal-open');
-   	  $('.modal-backdrop').remove();
-  }
-  
-  const resetApplyLeaveForm = () => {
-    $form[0].reset(); // clear built-in fields & radios
-	$form.removeClass('was-validated');
-	syncBlocks(); // put correct sections back
-	syncHalfBlock(); // hide half-day picker
+  const toggleHalfDay = () => {
+    const show = $('#halfDay').is(':checked');
+    $halfBlock.toggleClass('d-none', !show);
+    $timeInputs.prop('required', show);
   };
 
-  /* init listeners */
-  $toggle.on('change', syncBlocks);
-  $durationRad.on('change', syncHalfBlock);
-  $('#leaveCancelBtn').on('click', resetApplyLeaveForm); 
+  const resetForm = () => {
+    $form[0].reset();
+    $form.removeClass('was-validated');
+    toggleViews();
+    toggleHalfDay();
+  };
 
-  // run once on load so everything is in the right state
-  syncBlocks();
-  syncHalfBlock();
+  /* ---------- event wiring ---------- */
+  $toggleMulti.on('change', toggleViews);
+  $duration.on('change',   toggleHalfDay);
+  $('#leaveCancelBtn').on('click', resetForm);
 
-  /* form submit */
-  $form.on('submit', function (e) {
+  // initial state
+  toggleViews();
+  toggleHalfDay();
+
+  /* ---------- submit ---------- */
+  $form.on('submit', e => {
     e.preventDefault();
-
-    // client validation
-    if (!this.checkValidity()) {
-      this.classList.add('was-validated');
+    if (!e.currentTarget.checkValidity()) {
+      $form.addClass('was-validated');
       return;
     }
 
-    const empRaw = $('#leaveEmp').val() || '';
-    const [empCode = '', empName = ''] = empRaw.split(' - ');
+    const [empCode = '', employeeName = ''] =
+      ($('#leaveEmp').val() || '').split(' - ');
 
-    const multi = $toggle.prop('checked');
-    const half = $('#halfDay').prop('checked');
+    const multi = $toggleMulti.is(':checked');
+    const half  = $('#halfDay').is(':checked') && !multi;
 
-    // validate dates
+    // date checks ----------------------------------------------------------
     if (multi) {
-      const from = $('#leaveFrom').val(), to = $('#leaveTo').val();
-      if (!from || !to || to < from) {
-        alert('Please choose a valid From and To date.'); return;
-      }
-    } else if (!$('#leaveDate').val()) {
-      alert('Please choose a leave date.'); return;
+      const from = $('#leaveFrom').val(),
+            to   = $('#leaveTo').val();
+      if (!from || !to || to < from)
+        return alert('Please choose a valid From and To date.');
+    } else {
+      const workDate = $('#leaveDate').val();
+      if (!workDate) return alert('Please choose a leave date.');
+      if (half && !$checkInTime.val() && !$checkOutTime.val())
+        return alert('Check-In and Check-Out times are required for Half Day.');
     }
 
+    // build payload --------------------------------------------------------
     const dto = {
       empCode,
-      employeeName: empName,
-      leaveType: $('#leaveType').val(),
-      remarks:   $('#leaveRemarks').val(),
-      multiple:  multi,
-      halfDay:   !multi && half,
-      halfDaySlot: half ? $('#halfType').val() : null
+      employeeName,
+      leaveType   : $('#leaveType').val(),
+      remarks     : $('#leaveRemarks').val(),
+      multiple    : multi,
+      halfDay     : half,
+      halfDaySlot : half ? $('#halfType').val() : null,
+      checkIn     : half ? isoDateTime('#leaveDate',  '#checkInWorkTime') : null,
+      checkOut    : half ? isoDateTime('#leaveDate',  '#checkOutWorkTime') : null,
+      fromDate    : multi ? $('#leaveFrom').val() : null,
+      toDate      : multi ? $('#leaveTo').val()   : null,
+      workDate    : multi ? null                  : $('#leaveDate').val()
     };
 
-    if (multi) {
-      dto.fromDate = $('#leaveFrom').val();
-      dto.toDate   = $('#leaveTo').val();
-    } else {
-      dto.workDate = $('#leaveDate').val();
-    }
-
+    // ajax ---------------------------------------------------------------
     $.ajax({
-      url:  '<%= request.getContextPath() %>/v2/attendance/leave',
-      type: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify(dto),
-      success: () => {
-    	  alert("Leave applied successfully");
-    	  closeModal();
-    	  resetApplyLeaveForm();
-    	  $('#attendanceTable').DataTable().ajax.reload(null, false);
-      },
-      error: (xhr) =>
-        alert(xhr.responseText || 'Error submitting leave')
-    });
+      url         : '<%= request.getContextPath() %>/v2/attendance/leave',
+      method      : 'POST',
+      contentType : 'application/json',
+      data        : JSON.stringify(dto)
+    })
+    .done(() => {
+      alert('Leave applied successfully');
+      resetForm();
+      $('#applyLeaveModal').modal('hide');
+      $('#attendanceTable').DataTable().ajax.reload(null, false);
+    })
+    .fail(xhr =>
+      alert(xhr.responseText || 'Error submitting leave')
+    );
   });
-})();
+});
 </script>
