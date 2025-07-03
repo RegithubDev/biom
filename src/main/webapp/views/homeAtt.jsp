@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
 		    .scrollable-table {
 		    overflow-x: auto;
@@ -498,14 +499,32 @@
                                 <label for="attendanceDate" class="form-label">Work Date</label>
                                 <input type="date" id="attendanceDate" name="work_date" class="form-control" max="{{today}}" required>
                             </div>
-                            <div class="col-md-6">
-                                <label for="checkIn" class="form-label">Check-In</label>
-                                <input type="datetime-local" id="checkIn" name="day_start" class="form-control" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="checkOut" class="form-label">Check-Out</label>
-                                <input type="datetime-local" id="checkOut" name="day_end" class="form-control" required>
-                            </div>
+			
+							<div class="row g-3">
+							    <!-- Check-In -->
+								<div class="col-md-3">
+								  <label for="checkInDate" class="form-label">Check‑In Date</label>
+								  <input type="date" id="checkInDate" class="form-control" required>
+								</div>
+							
+								<div class="col-md-3">
+								  <label for="checkInTime" class="form-label">Check‑In Time</label>
+								  <input type="text" id="checkInTime" class="form-control time-picker" placeholder="HH:MM" required>
+								</div>
+							
+								<!-- Check-Out -->
+								<div class="col-md-3">
+								  <label for="checkOutDate" class="form-label">Check-Out Date</label>
+								  <input type="date" id="checkOutDate" class="form-control" required>
+								</div>
+								
+								<div class="col-md-3">
+								  <label for="checkOutTime" class="form-label">Check-Out Time</label>
+								  <input type="text" id="checkOutTime" class="form-control time-picker"
+								         placeholder="HH:MM" required>
+								</div>
+							</div>
+                            
                             <div class="col-md-6">
                                 <label for="shiftType" class="form-label">Shift</label>
                                 <select id="shiftType" name="shift_type" class="form-select">
@@ -545,6 +564,8 @@
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
 
     <script>
         function getDefaultDates() {
@@ -1226,18 +1247,38 @@
             }
 
             $('#downloadMissedPunchesBtn').click(downloadAllMissedPunches);
+            
+         	// Utility to merge date and time: yyyy-mm-dd + hh:mm  =>  yyyy-mm-ddThh:mm
+			function isoDateTime(dateId, timeId) {
+				  const d = $(dateId).val()?.trim();
+				  const t = $(timeId).val()?.trim();
+
+				  if (!d || !t) {
+				    return "";
+				  }
+				  
+				  return d + "T" + t;
+			}
+         	
+            flatpickr(".time-picker", {
+            	  enableTime : true,
+            	  noCalendar : true,      // time-only
+            	  dateFormat : "H:i",     // 24-hour value sent to JS
+            	  time_24hr  : true,      // forces 24h UI
+            	  // disableMobile: true  // disable native pickers on iOS/Android
+           	});
 
             $('#submitAttendanceBtn').on('click', function () {
                 const data = {
                     empCode: $('#attendanceEmp').val().split(' - ')[0],
                     employeeName: $('#attendanceEmp').val().split(' - ')[1],
-                    checkIn: $('#checkIn').val(),
-                    checkOut: $('#checkOut').val(),
+                    checkIn: isoDateTime('#checkInDate',  '#checkInTime'),
+                    checkOut: isoDateTime('#checkOutDate', '#checkOutTime'),
                     remarks: $('#attRemarks').val()
                 };
 
                 if (!data.checkIn || !data.checkOut) {
-                    alert("Check-In and Check-Out must be provided.");
+                    alert("Check-In and Check-Out date & time must be provided.");
                     return;
                 }
 
