@@ -15,8 +15,24 @@ public class AttendanceDto {
 	private String overtime;
 	private String finalOT;
 	private String remarks,leave_reason,is_leave;
-
-    public String getLeave_reason() {
+	
+	private String leaveDuration;
+	private String leaveHalfSlot;
+	
+	
+    public String getLeaveDuration() {
+		return leaveDuration;
+	}
+	public void setLeaveDuration(String leaveDuration) {
+		this.leaveDuration = leaveDuration;
+	}
+	public String getLeaveHalfSlot() {
+		return leaveHalfSlot;
+	}
+	public void setLeaveHalfSlot(String leaveHalfSlot) {
+		this.leaveHalfSlot = leaveHalfSlot;
+	}
+	public String getLeave_reason() {
 		return leave_reason;
 	}
 	public void setLeave_reason(String leave_reason) {

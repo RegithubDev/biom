@@ -111,6 +111,8 @@ public class AttendanceDAOImpl  implements AttendanceDAO {
             dto.setOvertime(rs.getInt("overtime_hours") + ":" + rs.getInt("overtime_minutes"));
             dto.setFinalOT(rs.getString("final_OT"));
             dto.setRemarks(rs.getString("remarks"));
+            dto.setLeaveDuration(rs.getString("leave_duration"));
+            dto.setLeaveHalfSlot(rs.getString("leave_half_slot"));
             return dto;
         });
         

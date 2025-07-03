@@ -780,8 +780,9 @@
                     },
                     {
                         data: 'attendanceStatus',
-                        render: function (data) {
+                        render: function (data, type, row) {
                             if (!data) return '-';
+
                             var badgeMap = {
                                 'ok': 'status-present',
                                 'leave': 'status-absent',
@@ -790,7 +791,24 @@
                                 'missed out': 'status-warning'
                             };
                             var badgeClass = badgeMap[data.toLowerCase()] || 'status-present';
-                            return '<span class="status-badge ' + badgeClass + '">' + data + '</span>';
+                            
+                            var label = ""; 
+                            if (row && row.leaveDuration) {
+                                if (row.leaveDuration === 'HALF') {
+                                    label = row.leaveHalfSlot === 'FIRST'  ? '1st Half' :
+                                            row.leaveHalfSlot === 'SECOND' ? '2nd Half' : '';
+                                } else {
+                                    label = 'Full Day';
+                                }
+                            }
+
+                            var tag = label
+                            	? ' <span class="half-badge ms-1 text-small" style="width:max-content;"> ' + ' – ' + label + '</span>'
+                            	: '';
+
+                            return '<span class="status-badge ' + badgeClass + '">' +
+                                     data + tag +
+                                   '</span>';
                         }
                     },
                     {
