@@ -503,13 +503,13 @@
 							<div class="row g-3">
 							    <!-- Check-In -->
 								<div class="col-md-3">
-								  <label for="checkInDate" class="form-label">Check‑In Date</label>
+								  <label for="checkInDate" class="form-label">Check-In Date</label>
 								  <input type="date" id="checkInDate" class="form-control" required>
 								</div>
 							
 								<div class="col-md-3">
-								  <label for="checkInTime" class="form-label">Check‑In Time</label>
-								  <input type="text" id="checkInTime" class="form-control time-picker" placeholder="HH:MM" required>
+								  <label for="checkInTime" class="form-label">Check-In Time</label>
+								  <input type="text" id="checkInTime" class="form-control time-picker" placeholder="HH:MM" data-input required>
 								</div>
 							
 								<!-- Check-Out -->
@@ -520,8 +520,7 @@
 								
 								<div class="col-md-3">
 								  <label for="checkOutTime" class="form-label">Check-Out Time</label>
-								  <input type="text" id="checkOutTime" class="form-control time-picker"
-								         placeholder="HH:MM" required>
+								  <input type="text" id="checkOutTime" class="form-control time-picker" placeholder="HH:MM" data-input required>
 								</div>
 							</div>
                             
@@ -1282,7 +1281,14 @@
             	  enableTime : true,
             	  noCalendar : true,      // time-only
             	  dateFormat : "H:i",     // 24-hour value sent to JS
-            	  time_24hr  : true,      // forces 24h UI
+            	  time_24hr : true,      // forces 24h UI
+            	  minuteIncrement : 1,
+            	  allowInput : false,
+            	  static : true,
+            	  onReady(_, __, inst) {
+            	    inst.hourElement.removeAttribute("readonly");
+            	    inst.minuteElement.removeAttribute("readonly");
+            	  },
             	  // disableMobile: true  // disable native pickers on iOS/Android
            	});
 
