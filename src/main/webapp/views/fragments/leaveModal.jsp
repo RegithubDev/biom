@@ -96,6 +96,8 @@
         <option value="SL">Sick Leave</option>
         <option value="CL">Casual Leave</option>
         <option value="EL">Earned Leave</option>
+        <option value="ML">Maternity Leave</option>
+        <option value="PL">Paternity Leave</option>
       </select>
     </div>
 
