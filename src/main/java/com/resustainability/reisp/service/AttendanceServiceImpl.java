@@ -236,7 +236,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 	}
 	
 	@Override
-	public Object v2ApplyLeave(AttendanceLeaveDTO dto, String userId) {
+	public String v2ApplyLeave(AttendanceLeaveDTO dto, String userId) {
         return attendanceDAO.v2ApplyLeave(dto, userId);
 	}
 	

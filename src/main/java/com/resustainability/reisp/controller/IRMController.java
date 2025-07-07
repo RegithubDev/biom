@@ -274,8 +274,8 @@ public class IRMController {
 	) {
 	    try {
 	        String userId = (String) session.getAttribute("USER_ID");
-	        attendanceService.v2ApplyLeave(dto, userId);
-	        return ResponseEntity.ok("Leave applied successfully");
+            String message = attendanceService.v2ApplyLeave(dto, userId);
+            return ResponseEntity.ok(message);
 	    } catch (Exception e) {
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
 	    }

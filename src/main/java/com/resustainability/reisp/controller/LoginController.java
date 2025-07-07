@@ -69,13 +69,7 @@ public class LoginController {
 	}
 	@RequestMapping(value = "/proxy", method = {RequestMethod.POST, RequestMethod.GET})
 	public ModelAndView proxy(@ModelAttribute User user, HttpSession session,HttpServletRequest request) {
-		ModelAndView model = new ModelAndView(PageConstants.proxy);
-		try {
-			 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return model;
+		return new ModelAndView(PageConstants.proxy);
 	}
 	
 	@RequestMapping(value = "/login", method = {RequestMethod.POST, RequestMethod.GET})
