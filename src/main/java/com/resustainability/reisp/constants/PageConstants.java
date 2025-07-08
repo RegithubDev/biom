@@ -12,6 +12,7 @@ public class PageConstants {
 	public static final String dashboardAdmin = "dashboardAdmin";
 	public static final String dashboardAdmin2 = "dashboardAdmin2";
 	public static final String proxy = "proxy";   
+	public static final String leaveBalance = "pages/leaveBalance";
 
 	public static final String done = "done";
 	/// Mobile Forms  

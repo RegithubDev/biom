@@ -1,5 +1,6 @@
 package com.resustainability.reisp.controller;
 
+import com.resustainability.reisp.constants.PageConstants;
 import com.resustainability.reisp.dto.commons.Pager;
 import com.resustainability.reisp.dto.entity.LeaveBalance;
 import com.resustainability.reisp.service.LeaveBalanceService;
@@ -9,6 +10,7 @@ import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
 
@@ -28,7 +30,23 @@ public class LeaveBalanceController {
         this.leaveBalanceService = leaveBalanceService;
     }
 
-    @RequestMapping(value = "/api/v1/leave/list", method = RequestMethod.GET)
+    @RequestMapping(
+            value = "/leave-balance",
+            method = {
+                    RequestMethod.POST,
+                    RequestMethod.GET
+            }
+    )
+    public ModelAndView defaultPage() {
+        return new ModelAndView(PageConstants.leaveBalance);
+    }
+
+    @RequestMapping(
+            value = "/api/v1/leave/list",
+            method = {
+                    RequestMethod.GET
+            }
+    )
     @ResponseBody
     public Pager<LeaveBalance> list(
             HttpSession session,
