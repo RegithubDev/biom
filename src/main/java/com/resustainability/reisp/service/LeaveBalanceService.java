@@ -17,7 +17,7 @@ public class LeaveBalanceService {
         this.leaveBalanceDao = leaveBalanceDao;
     }
 
-    public Pager<LeaveBalance> list(int page, int size, String sort, String direction) {
-        return leaveBalanceDao.fetchPage(page, size, sort, direction);
+    public Pager<LeaveBalance> list(int page, int size, String sort, String direction, String searchTerm) {
+        return leaveBalanceDao.fetchPage(page, size, sort, direction, searchTerm);
     }
 }

@@ -53,8 +53,9 @@ public class LeaveBalanceController {
             @RequestParam(value = "page", defaultValue = "0")  int  page,
             @RequestParam(value = "size", defaultValue = "10") int  size,
             @RequestParam(value = "sort", defaultValue = "id") String sort,
-            @RequestParam(value = "direction", defaultValue = "asc") String direction
+            @RequestParam(value = "direction", defaultValue = "asc") String direction,
+            @RequestParam(value = "q", required = false) String searchTerm
     ) {
-         return leaveBalanceService.list(page, size, sort, direction);
+         return leaveBalanceService.list(page, size, sort, direction, searchTerm);
     }
 }

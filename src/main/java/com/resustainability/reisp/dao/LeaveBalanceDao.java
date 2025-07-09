@@ -17,25 +17,29 @@ public class LeaveBalanceDao {
 
     private final JdbcTemplate jdbcTemplate;
 
-    private static final Map<String,String> SORT_COLUMNS = Map.of(
+    private static final Map<String, String> SORT_COLUMNS = Map.of(
             "id", "id",
             "empCode", "empCode",
             "empName", "empName",
             "hireDate", "hireDate"
     );
 
-    public static final String TABLE_NAME = "att_leaveBalanceSummary";
-
     @Autowired
     public LeaveBalanceDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public Pager<LeaveBalance> fetchPage(int page, int size, String sortCol, String direction) {
+    public Pager<LeaveBalance> fetchPage(int page, int size, String sortCol, String direction, String searchTerm) {
         /* validate / default */
-        sortCol   = StringUtils.isBlank(sortCol) ? "id" : SORT_COLUMNS.getOrDefault(sortCol, "id");
+        sortCol = StringUtils.isBlank(sortCol) ? "id" : SORT_COLUMNS.getOrDefault(sortCol, "id");
+
+        // sort
         direction = "desc".equalsIgnoreCase(direction) ? "DESC" : "ASC";
         int offset = page * size;
+
+        // search term
+        boolean hasSearch = StringUtils.isNotBlank(searchTerm);
+        String likePattern = hasSearch ? "%" + searchTerm.trim() + "%" : null;
 
         /* data page */
         String dataSql = """
@@ -43,6 +47,9 @@ public class LeaveBalanceDao {
                         sickLeave, casualLeave, earnedLeave,
                         maternityLeave, paternityLeave
                 FROM    dbo.att_leaveBalanceSummary
+                WHERE   (? IS NULL
+                         OR empCode LIKE ?
+                         OR empName LIKE ?)
                 ORDER BY %s %s
                 OFFSET  ? ROWS FETCH NEXT ? ROWS ONLY;
                 """.formatted(sortCol, direction);
@@ -62,14 +69,23 @@ public class LeaveBalanceDao {
                     lb.setPaternityLeave(rs.getBigDecimal("paternityLeave"));
                     return lb;
                 },
-                offset,
-                size
+                likePattern, likePattern, likePattern,
+                offset, size
         );
 
         /* total count */
+        String countSql = """
+                        SELECT COUNT(*)
+                        FROM   dbo.att_leaveBalanceSummary
+                        WHERE  (? IS NULL
+                                OR empCode LIKE ?
+                                OR empName LIKE ?)
+                """;
+
         long total = jdbcTemplate.queryForObject(
-                String.format("SELECT COUNT(*) FROM dbo.%s", TABLE_NAME),
-                Long.class
+                countSql,
+                Long.class,
+                likePattern, likePattern, likePattern
         );
 
         return new Pager<>(
