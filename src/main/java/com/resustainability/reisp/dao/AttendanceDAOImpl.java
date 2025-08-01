@@ -12,16 +12,25 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 import javax.ws.rs.QueryParam;
 
+import com.resustainability.reisp.common.DateParser;
+import com.resustainability.reisp.dto.AttendanceDuration;
+import com.resustainability.reisp.dto.EmployeeMeta;
+
+import com.resustainability.reisp.dto.entity.AttendanceRe;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.resustainability.reisp.model.AttendanceDto;
 import com.resustainability.reisp.model.AttendanceExportDTO;
@@ -89,6 +98,7 @@ public class AttendanceDAOImpl  implements AttendanceDAO {
 
         return jdbcTemplate.query(sql.toString(), params.toArray(), (rs, rowNum) -> {
             AttendanceDto dto = new AttendanceDto();
+            dto.setSl_no(rs.getLong("sl_no"));
             dto.setWorkDate(rs.getString("work_date"));
             dto.setEmpCode(rs.getString("emp_code"));
             dto.setEmployeeName(rs.getString("employee_name"));
@@ -105,6 +115,9 @@ public class AttendanceDAOImpl  implements AttendanceDAO {
             dto.setOvertime(rs.getInt("overtime_hours") + ":" + rs.getInt("overtime_minutes"));
             dto.setFinalOT(rs.getString("final_OT"));
             dto.setRemarks(rs.getString("remarks"));
+            dto.setIsRegularised(rs.getString("is_regularised"));
+            dto.setLeaveDuration(rs.getString("leave_duration"));
+            dto.setLeaveHalfSlot(rs.getString("leave_half_slot"));
             return dto;
         });
         
@@ -712,8 +725,410 @@ public class AttendanceDAOImpl  implements AttendanceDAO {
             dto.getRemarks()
         );
     }
+    
+    @Override
+    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED)
+    public String v2ApplyLeave(AttendanceLeaveDTO dto, String userId) {
+        if (dto.isHalfDay()) {
+        	if (StringUtils.isBlank(dto.getHalfDaySlot())) {
+        		throw new IllegalArgumentException("Specify half day slot: First Half, Second Half");
+        	}
+        	
+        	boolean isFirstHalfSlot = dto.getHalfDaySlot().equals("FIRST");
+        	
+        	if (StringUtils.isBlank(dto.getCheckIn())) {
+        		throw new IllegalArgumentException(
+        				String.format("Specify work check-in hour %s", (isFirstHalfSlot ? "after First Half Leave" : "before Second Half Leave"))
+				);
+        	}
+        	
+        	if (StringUtils.isBlank(dto.getCheckOut())) {
+        		throw new IllegalArgumentException(
+        				String.format("Specify work check-out hour %s", (isFirstHalfSlot ? "after First Half Leave" : "before Second Half Leave"))
+				);
+        	}
+        }
+        
+        String attendanceStatus = "Leave";
+        String isLeave = "1";
+        String isRegularised = "1";
+        String leaveDuration = dto.isHalfDay() ? "HALF" : "FULL";
+        String leaveHalfSlot = dto.isHalfDay() ? dto.getHalfDaySlot() : null;
+
+        // 1️. Build full date list in ISO_DATE (yyyy-mm-dd)
+        List<String> days = dto.isMultiple()
+                ? DateParser.expandRange(dto.getFromDate(), dto.getToDate())
+                : DateParser.expandRange(dto.getWorkDate(), dto.getWorkDate());
+        
+        // 2. Pull existing records for update them all
+        Map<String, AttendanceDuration> indexedAttendanceDurationMap = new HashMap<>();
+
+        // Key: work_date, Value: List<Records>
+        Map<String, List<AttendanceRe>> existingWorkDateRecords = getExistingEmployeeAttendanceRecordsByWorkDates(dto.getEmpCode(), days)
+        		.stream()
+        		.map(existingRecord -> {
+
+        			AttendanceDuration calculatedDuration = null;
+        			if (dto.isHalfDay()) {
+
+        				//  If Half day Leave already for a SLOT applied for a Date, again applying for Half Day, to complete Full day, show error: Apply for FULL-DAY Leave
+        				if ("HALF".equals(existingRecord.getLeaveDuration())) {
+        					throw new IllegalStateException(
+        							String.format(
+        									"Apply for Full Leave, already half day leave is there for the date %s with %s half slot.",
+        									existingRecord.getWorkDate(),
+        									existingRecord.getLeaveHalfSlot()
+									)
+							);
+        				}
+        				
+        				
+        				// Full Leave already applied for a Date, again applying for Half Day, update the existing Record accordingly with cal.
+        				if ("FULL".equals(existingRecord.getLeaveDuration())) {
+        					calculatedDuration = computeAttendanceDuration(true, dto.getCheckIn(), dto.getCheckOut());
+        				}
+        				
+        			} else {
+        				// If Half day Leave already for a SLOT applied for a Date, again applying for Full Day, update existing record accordingly with cal.
+        				if ("HALF".equals(existingRecord.getLeaveDuration())) {
+        					calculatedDuration = AttendanceDuration.buildEmpty();
+        				}
+        				
+        				// If Full day Leave already applied throw error
+        				if ("FULL".equals(existingRecord.getLeaveDuration())) {
+        					throw new IllegalStateException(
+        							String.format("Full day leave already applied for %s", existingRecord.getWorkDate())
+							);
+        				}
+        			}
+        			
+        			if (null == calculatedDuration) {
+    					calculatedDuration = AttendanceDuration.buildEmpty();
+        			}
+        			
+   					existingRecord.setLeaveDuration(leaveDuration);
+					existingRecord.setLeaveHalfSlot(leaveHalfSlot);
+					existingRecord.setAttendanceStatus(attendanceStatus);
+					existingRecord.setLeave(isLeave);
+					existingRecord.setLeaveReason(dto.getLeaveType());
+					existingRecord.setRegularised(isRegularised);
+					existingRecord.setRemarks(dto.getRemarks());
+        			
+        			indexedAttendanceDurationMap.put(existingRecord.getWorkDate(), calculatedDuration);
+        			
+        			return existingRecord;
+        		})
+        		.collect(Collectors.groupingBy(AttendanceRe::getWorkDate));
+
+        // 3. Update existing records
+        if (!existingWorkDateRecords.isEmpty()) {
+            List<AttendanceRe> recordsToUpdate = existingWorkDateRecords.values()
+                    .stream()
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toCollection(ArrayList::new));
+
+            String updateQuery = """
+                            UPDATE [INOPSETPDB].[dbo].[att_attendanceRe] SET
+                            day_start = ?,
+                            day_end = ?,
+                            shift_type = ?,
+                            total_working_hours = ?,
+                            total_hours = ?,
+                            total_minutes = ?,
+                            overtime_hours = ?,
+                            overtime_minutes = ?,
+                            attendance_status = ?,
+                            is_regularised = ?,
+                            action_by = ?,
+                            is_leave = ?,
+                            leave_reason = ?,
+                            remarks = ?,
+                            leave_duration = ?,
+                            leave_half_slot = ?
+                            WHERE sl_no = ?
+                    """;
+
+            try {
+                jdbcTemplate.batchUpdate(updateQuery, new BatchPreparedStatementSetter() {
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        AttendanceRe entity = recordsToUpdate.get(i);
+                        AttendanceDuration duration = indexedAttendanceDurationMap.getOrDefault(entity.getWorkDate(), AttendanceDuration.buildEmpty());
+
+                        ps.setString(1, toSafeDBDateString(duration.clockInAsString())); // day_start
+                        ps.setString(2, toSafeDBDateString(duration.clockOutAsString())); // day_end
+                        ps.setString(3, duration.shiftType()); // shift_type
+                        ps.setString(4, String.valueOf(duration.totalWorkHours())); // total_working_hours
+                        ps.setString(5, String.valueOf(duration.totalHours())); // total_hours
+                        ps.setString(6, String.valueOf(duration.totalMinutes())); // total_minutes
+                        ps.setString(7, String.valueOf(duration.overtimeHours())); // overtime_hours
+                        ps.setString(8, String.valueOf(duration.overtimeMinutes())); // overtime_minutes
+                        ps.setString(9, entity.getAttendanceStatus()); // attendance_status
+                        ps.setString(10, entity.getRegularised()); // is_regularised
+                        ps.setString(11, userId); // action_by
+                        ps.setString(12, entity.getLeave()); // is_leave
+                        ps.setString(13, entity.getLeaveReason()); // leave_reason
+                        ps.setString(14, entity.getRemarks()); // remarks
+                        ps.setString(15, entity.getLeaveDuration()); // leave_duration
+                        ps.setString(16, entity.getLeaveHalfSlot()); // leave_half_slot
+                        ps.setString(17, String.valueOf(entity.getSlNo())); // sl_no
+                    }
+
+                    public int getBatchSize() {
+                        return recordsToUpdate.size();
+                    }
+                });
+            } catch (Exception exception) {
+                throw new IllegalStateException("Something went wrong while modifying existing records for leave");
+            } finally {
+                indexedAttendanceDurationMap.clear();
+            }
+        }
+
+        // 4. Insert records if not exists
+        List<String> recordsToInsert = days.stream()
+                .filter(appliedLeaveDate -> !existingWorkDateRecords.containsKey(appliedLeaveDate))
+                .distinct()
+                .map(appliedLeaveDate -> {
+
+                    AttendanceDuration calculatedDuration;
+                    if (dto.isHalfDay()) {
+                        calculatedDuration = computeAttendanceDuration(true, dto.getCheckIn(), dto.getCheckOut());
+                    } else {
+                        calculatedDuration = AttendanceDuration.buildEmpty();
+                    }
+
+                    indexedAttendanceDurationMap.put(appliedLeaveDate, calculatedDuration);
+
+                    return appliedLeaveDate;
+                })
+                .toList();
+
+        if (!recordsToInsert.isEmpty()) {
+            // Fetch employee metadata while inserting
+            EmployeeMeta employeeMeta = fetchEmployeeMeta(dto.getEmpCode())
+                    .orElseThrow(() -> new IllegalArgumentException("Unknown employee with " + dto.getEmpCode() + " code"));
+
+            int totalInsertionColumnSize = 26;
+            String insertQuery = """
+                     INSERT INTO att_attendanceRe (
+                         emp_code,
+                         employee_name,
+                         position_name,
+                         area_name,
+                         site_name,
+                         work_date,
+                         day_start,
+                         day_end,
+                         shift_type,
+                         total_working_hours,
+                         total_hours,
+                         total_minutes,
+                         overtime_hours,
+                         overtime_minutes,
+                         attendance_status,
+                         is_holiday,
+                         holiday_reason,
+                         is_regularised,
+                         action_by,
+                         regularise_reason,
+                         is_leave,
+                         leave_reason,
+                         final_OT,
+                         remarks,
+                         leave_duration,
+                         leave_half_slot
+                    ) VALUES (""" + String.join(",", Collections.nCopies(totalInsertionColumnSize, "?")) + """
+                        )
+                    """;
+
+            try {
+                jdbcTemplate.batchUpdate(insertQuery, new BatchPreparedStatementSetter() {
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        String workDate = recordsToInsert.get(i);
+                        AttendanceDuration duration = indexedAttendanceDurationMap.getOrDefault(workDate, AttendanceDuration.buildEmpty());
+
+                        ps.setString(1, employeeMeta.employeeCode()); // emp_code
+                        ps.setString(2, employeeMeta.employeeName()); // employee_name
+                        ps.setString(3, employeeMeta.positionName()); // position_name
+                        ps.setString(4, employeeMeta.areaName()); // area_name
+                        ps.setString(5, null); // site_name
+                        ps.setString(6, workDate); // work_date
+                        ps.setString(7, toSafeDBDateString(duration.clockInAsString())); // day_start
+                        ps.setString(8, toSafeDBDateString(duration.clockOutAsString())); // day_end
+                        ps.setString(9, duration.shiftType()); // shift_type
+                        ps.setString(10, String.valueOf(duration.totalWorkHours())); // total_working_hours
+                        ps.setString(11, String.valueOf(duration.totalHours())); // total_hours
+                        ps.setString(12, String.valueOf(duration.totalMinutes())); // total_minutes
+                        ps.setString(13, String.valueOf(duration.overtimeHours())); // overtime_hours
+                        ps.setString(14, String.valueOf(duration.overtimeMinutes())); // overtime_minutes
+                        ps.setString(15, attendanceStatus); // attendance_status
+                        ps.setString(16, null); // is_holiday
+                        ps.setString(17, null); // holiday_reason
+                        ps.setString(18, isRegularised); // is_regularised
+                        ps.setString(19, userId); // action_by
+                        ps.setString(20, null); // regularise_reason
+                        ps.setString(21, isLeave); // is_leave
+                        ps.setString(22, dto.getLeaveType()); // leave_reason
+                        ps.setString(23, null); // final_OT
+                        ps.setString(24, dto.getRemarks()); // remarks
+                        ps.setString(25, leaveDuration); // leave_duration
+                        ps.setString(26, leaveHalfSlot); // leave_half_slot
+                    }
+
+                    public int getBatchSize() {
+                        return recordsToInsert.size();
+                    }
+                });
+            } catch (Exception exception) {
+                throw new IllegalStateException("Something went wrong while inserting new records for leave");
+            }
+        }
+
+        return String.format(
+                "%s leave applied for (%s)",
+                dto.isMultiple() ? "Multiple days" : dto.isHalfDay() ? "Half-day" : "Full-day",
+                String.join(", ", days)
+        );
+    }
+    
+    public String determineShiftByTime(String timePart) {
+        String shift;
+        if (timePart.compareTo("03:45:00") >= 0 && timePart.compareTo("08:45:00") < 0) {
+        	shift = "Shift A";
+        } else if (timePart.compareTo("08:45:00") >= 0 && timePart.compareTo("12:45:00") < 0) {
+        	shift = "General Shift";
+        } else if (timePart.compareTo("12:45:00") >= 0 && timePart.compareTo("21:15:00") < 0) {
+        	shift = "Shift B";
+        } else {
+        	shift = "Shift C";
+        }
+        return shift;
+    }
+    
+    public String extractTimePartByRawString(String rawDateTimeString) {
+    	return rawDateTimeString.split("T")[1];
+    }
+    
+    public String extractTimePartByDateTimeString(String dateTimeString) {
+    	return dateTimeString.split(" ")[1];
+    }
+    
+    public AttendanceDuration computeAttendanceDuration(boolean raw, String clockInAsString, String clockOutAsString) {
+    	// Parse CLOCK_IN, CLOCK_OUT
+    	LocalDateTime clockIn = toLocalDateTime(clockInAsString);
+    	LocalDateTime clockOut = toLocalDateTime(clockOutAsString);
+    	
+        // Compute Attendance Duration and OT
+        long totalSeconds = Duration.between(clockIn, clockOut).getSeconds();
+        int totalHours = (int) (totalSeconds / 3600);
+        int totalMinutes = (int) ((totalSeconds % 3600) / 60);
+        Integer overtimeHours = Math.max(totalHours - 8, 0);
+        Double totalWorkHours = totalHours + (totalMinutes / 60.0);
+
+        // Determine Shift Type
+        String clockInTimePart = raw ? extractTimePartByRawString(clockInAsString) : extractTimePartByDateTimeString(clockInAsString);
+        String shiftType = determineShiftByTime(clockInTimePart);
+        
+        return new AttendanceDuration(
+        		clockIn,
+        		clockOut,
+        		clockInAsString,
+        		clockOutAsString,
+        		totalSeconds,
+        		totalHours,
+        		totalMinutes,
+        		overtimeHours,
+                0,
+        		totalWorkHours,
+        		clockInTimePart,
+        		shiftType
+		);
+    }
+    
+    public LocalDateTime toLocalDateTime(String rawDateTimeString) {
+        return LocalDateTime.parse(
+                toSafeDBDateString(rawDateTimeString),
+        		DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+		);
+    }
+
+    public String toSafeDBDateString(String rawDateTimeString) {
+        return StringUtils.isNotBlank(rawDateTimeString) ? rawDateTimeString.replace("T", " ") : null;
+    }
+
+    public List<AttendanceRe> getExistingEmployeeAttendanceRecordsByWorkDates(String empCode, List<String> days) {
+        if (days.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String inClause = String.join(",", Collections.nCopies(days.size(), "?"));
+        String query = """
+            SELECT *
+            FROM att_attendanceRe
+            WHERE emp_code = ?
+            AND work_date IN (%s)
+            AND is_leave = 1
+        """;
+
+        List<Object> args = new ArrayList<>(days.size() + 1);
+        args.add(empCode);
+        args.addAll(days);
+
+        return jdbcTemplate.query(
+                String.format(query, inClause),
+                args.toArray(),
+                (rs, i) -> new AttendanceRe(
+                        rs.getLong("sl_no"),
+                        rs.getString("emp_code"),
+                        rs.getString("employee_name"),
+                        rs.getString("position_name"),
+                        rs.getString("area_name"),
+                        rs.getString("site_name"),
+                        rs.getString("work_date"),
+                        rs.getString("day_start"),
+                        rs.getString("day_end"),
+                        rs.getString("shift_type"),
+                        rs.getString("total_working_hours"),
+                        rs.getString("total_hours"),
+                        rs.getString("total_minutes"),
+                        rs.getString("overtime_hours"),
+                        rs.getString("overtime_minutes"),
+                        rs.getString("attendance_status"),
+                        rs.getString("is_holiday"),
+                        rs.getString("holiday_reason"),
+                        rs.getString("is_regularised"),
+                        rs.getString("action_by"),
+                        rs.getString("regularise_reason"),
+                        rs.getString("is_leave"),
+                        rs.getString("leave_reason"),
+                        rs.getString("final_OT"),
+                        rs.getString("remarks"),
+                        rs.getString("leave_duration"),
+                        rs.getString("leave_half_slot")
+                )
+        );
+	}
 
 
+	public Optional<EmployeeMeta> fetchEmployeeMeta(String employeeCode) {
+        String query = """
+            SELECT TOP 1 area_name, position_name, employee_name
+            FROM att_attendanceRe WHERE emp_code = ?
+            ORDER BY work_date DESC
+            """;
+
+        return jdbcTemplate.query(
+                query,
+                (rs, i) -> new EmployeeMeta(
+                    employeeCode,
+                    rs.getString("employee_name"),
+                    rs.getString("area_name"),
+                    rs.getString("position_name")
+                ),
+                employeeCode
+        ).stream()
+        .findFirst();
+    }
 
 
     @Override
@@ -740,9 +1155,10 @@ public class AttendanceDAOImpl  implements AttendanceDAO {
                 work_date, day_start, day_end, shift_type,
                 total_working_hours, total_hours, total_minutes,
                 overtime_hours, overtime_minutes,
+                attendance_status,
                 remarks, is_regularised, action_by
             ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OK', ?, 1, ?
             )
         """;
 

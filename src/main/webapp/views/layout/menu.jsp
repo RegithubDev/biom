@@ -145,7 +145,7 @@ ul, li {
       </li>
       
       <li class="nav-item" id="reports" url="<%= request.getContextPath() %>/home">
-        <a href="<%= request.getContextPath() %>/home">
+        <a href="<%= request.getContextPath() %>/leave-balance">
           <i data-feather="file-text"></i>Leave Balance
         </a>
       </li>

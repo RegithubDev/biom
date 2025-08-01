@@ -1,6 +1,7 @@
 package com.resustainability.reisp.model;
 
 public class AttendanceDto {
+	private Long sl_no;
 	private String workDate;
 	private String empCode;
 	private String employeeName;
@@ -15,8 +16,39 @@ public class AttendanceDto {
 	private String overtime;
 	private String finalOT;
 	private String remarks,leave_reason,is_leave;
+	private String isRegularised;
+	
+	private String leaveDuration;
+	private String leaveHalfSlot;
 
-    public String getLeave_reason() {
+
+	public AttendanceDto() {}
+
+	public Long getSl_no() {
+		return sl_no;
+	}
+	public void setSl_no(Long sl_no) {
+		this.sl_no = sl_no;
+	}
+	public String getIsRegularised() {
+		return isRegularised;
+	}
+	public void setIsRegularised(String isRegularised) {
+		this.isRegularised = isRegularised;
+	}
+	public String getLeaveDuration() {
+		return leaveDuration;
+	}
+	public void setLeaveDuration(String leaveDuration) {
+		this.leaveDuration = leaveDuration;
+	}
+	public String getLeaveHalfSlot() {
+		return leaveHalfSlot;
+	}
+	public void setLeaveHalfSlot(String leaveHalfSlot) {
+		this.leaveHalfSlot = leaveHalfSlot;
+	}
+	public String getLeave_reason() {
 		return leave_reason;
 	}
 	public void setLeave_reason(String leave_reason) {

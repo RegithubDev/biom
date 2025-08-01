@@ -3,9 +3,18 @@ package com.resustainability.reisp.common;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.log4j.Logger;
 
@@ -201,5 +210,27 @@ public class DateParser {
     }*/
     
     
+    public static List<String> expandRange(String from, String to) {
+        LocalDate start = LocalDate.parse(from);
+        LocalDate end = LocalDate.parse(to);
+        if (end.isBefore(start)) {
+        	throw new IllegalArgumentException("Invalid date range");
+        }
+        
+        if (start.equals(end)) {
+        	return List.of(
+        			start.format(
+        					DateTimeFormatter.ISO_LOCAL_DATE
+        			)
+			);
+        }
+        
+        long days = ChronoUnit.DAYS.between(start, end);
+        return Stream
+        		.iterate(start, d -> d.plusDays(1))
+        		.limit(days + 1)
+        		.map(d -> d.format(DateTimeFormatter.ISO_LOCAL_DATE))
+        		.collect(Collectors.toCollection(ArrayList::new));
+    }
     
 }

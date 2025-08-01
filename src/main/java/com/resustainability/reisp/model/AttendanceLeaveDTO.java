@@ -16,8 +16,75 @@ public class AttendanceLeaveDTO {
     private String halfDayTime; // e.g., "13:30"
 
     private List<String> workDates; // for multi-day leave
-
     
+    private String checkIn;
+    private String checkOut;
+
+    private boolean multiple;
+    private String fromDate;
+    private String toDate;
+    
+    private boolean halfDay;
+    private String halfDaySlot;
+    
+    
+    public String getCheckIn() {
+		return checkIn;
+	}
+
+	public void setCheckIn(String checkIn) {
+		this.checkIn = checkIn;
+	}
+
+	public String getCheckOut() {
+		return checkOut;
+	}
+
+	public void setCheckOut(String checkOut) {
+		this.checkOut = checkOut;
+	}
+
+	public boolean isMultiple() {
+    	return multiple;
+    }
+    
+	public void setMultiple(boolean multiple) {
+		this.multiple = multiple;
+	}
+    
+	public String getFromDate() {
+		return fromDate;
+	}
+	
+	public void setFromDate(String fromDate) {
+		this.fromDate = fromDate;
+	}
+
+	public String getToDate() {
+		return toDate;
+	}
+
+	public void setToDate(String toDate) {
+		this.toDate = toDate;
+	}
+
+	public boolean isHalfDay() {
+		return halfDay;
+	}
+
+	public void setHalfDay(boolean halfDay) {
+		this.halfDay = halfDay;
+	}
+
+	public String getHalfDaySlot() {
+		return halfDaySlot;
+	}
+
+	public void setHalfDaySlot(String halfDaySlot) {
+		this.halfDaySlot = halfDaySlot;
+	}
+	
+
 	public String getHalfDayTime() {
 		return halfDayTime;
 	}

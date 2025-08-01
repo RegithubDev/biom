@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
 		    .scrollable-table {
 		    overflow-x: auto;
@@ -341,7 +342,7 @@
 <div class="container-fluid">
     <!-- BEGIN: Header-->
     <jsp:include page="../views/layout/header.jsp"></jsp:include> 
-    <jsp:include page="../views/layout/menu.jsp"></jsp:include> 
+    <jsp:include page="../views/layout/menu.jsp"></jsp:include>
 
     <div class="row">
         <div class="col-lg-12">
@@ -498,14 +499,31 @@
                                 <label for="attendanceDate" class="form-label">Work Date</label>
                                 <input type="date" id="attendanceDate" name="work_date" class="form-control" max="{{today}}" required>
                             </div>
-                            <div class="col-md-6">
-                                <label for="checkIn" class="form-label">Check-In</label>
-                                <input type="datetime-local" id="checkIn" name="day_start" class="form-control" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="checkOut" class="form-label">Check-Out</label>
-                                <input type="datetime-local" id="checkOut" name="day_end" class="form-control" required>
-                            </div>
+			
+							<div class="row g-3">
+							    <!-- Check-In -->
+								<div class="col-md-3">
+								  <label for="checkInDate" class="form-label">Check-In Date</label>
+								  <input type="date" id="checkInDate" class="form-control" required>
+								</div>
+							
+								<div class="col-md-3">
+								  <label for="checkInTime" class="form-label">Check-In Time</label>
+								  <input type="text" id="checkInTime" class="form-control time-picker" placeholder="HH:MM" data-input required>
+								</div>
+							
+								<!-- Check-Out -->
+								<div class="col-md-3">
+								  <label for="checkOutDate" class="form-label">Check-Out Date</label>
+								  <input type="date" id="checkOutDate" class="form-control" required>
+								</div>
+								
+								<div class="col-md-3">
+								  <label for="checkOutTime" class="form-label">Check-Out Time</label>
+								  <input type="text" id="checkOutTime" class="form-control time-picker" placeholder="HH:MM" data-input required>
+								</div>
+							</div>
+                            
                             <div class="col-md-6">
                                 <label for="shiftType" class="form-label">Shift</label>
                                 <select id="shiftType" name="shift_type" class="form-select">
@@ -534,79 +552,7 @@
    <div class="modal fade" id="applyLeaveModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="applyLeaveForm">
-                <div class="modal-header">
-                    <h5 class="modal-title">Apply Leave</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="leaveEmp" class="form-label">Employee</label>
-                        <select class="form-select" id="leaveEmp" name="empCode" required></select>
-                    </div>
-
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="multiDayCheckbox">
-                        <label class="form-check-label" for="multiDayCheckbox">Apply for multiple days</label>
-                    </div>
-
-                    <!-- From/To Dates (Visible if multi-day selected) -->
-                    <div class="mb-3 multi-day-section d-none">
-                        <label for="leaveFrom" class="form-label">From Date</label>
-                        <input type="date" id="leaveFrom" name="from_date" class="form-control">
-                    </div>
-                    <div class="mb-3 multi-day-section d-none">
-                        <label for="leaveTo" class="form-label">To Date</label>
-                        <input type="date" id="leaveTo" name="to_date" class="form-control">
-                    </div>
-
-                    <!-- Single Day Section -->
-                    <div class="mb-3 single-day-section">
-                        <label for="leaveDate" class="form-label">Leave Date</label>
-                        <input type="date" id="leaveDate" name="work_date" class="form-control">
-                    </div>
-
-                    <div class="mb-3 single-day-section">
-                        <label class="form-label d-block">Duration</label>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="duration" id="fullDay" value="Full" checked>
-                            <label class="form-check-label" for="fullDay">Full Day</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="duration" id="halfDay" value="Half">
-                            <label class="form-check-label" for="halfDay">Half Day</label>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 single-day-section half-day-options d-none">
-                        <label for="halfType" class="form-label">Half Day Type</label>
-                        <select id="halfType" name="half_day_type" class="form-select">
-                            <option value="First Half">First Half</option>
-                            <option value="Second Half">Second Half</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="leaveType" class="form-label">Leave Type</label>
-                        <select id="leaveType" name="leave_reason" class="form-select">
-                            <option value="SL">Sick Leave</option>
-                            <option value="CL">Casual Leave</option>
-                            <option value="EL">Earned Leave</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="leaveRemarks" class="form-label">Remarks</label>
-                        <textarea id="leaveRemarks" name="remarks" class="form-control"></textarea>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="submit" id="submitLeaveBtn" class="btn btn-primary">Apply</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </form>
+            <jsp:include page="/views/fragments/leaveModal.jsp" />
         </div>
     </div>
 </div>
@@ -617,6 +563,8 @@
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
 
     <script>
         function getDefaultDates() {
@@ -831,8 +779,9 @@
                     },
                     {
                         data: 'attendanceStatus',
-                        render: function (data) {
+                        render: function (data, type, row) {
                             if (!data) return '-';
+
                             var badgeMap = {
                                 'ok': 'status-present',
                                 'leave': 'status-absent',
@@ -841,7 +790,24 @@
                                 'missed out': 'status-warning'
                             };
                             var badgeClass = badgeMap[data.toLowerCase()] || 'status-present';
-                            return '<span class="status-badge ' + badgeClass + '">' + data + '</span>';
+                            
+                            var label = ""; 
+                            if (row && row.leaveDuration) {
+                                if (row.leaveDuration === 'HALF') {
+                                    label = row.leaveHalfSlot === 'FIRST'  ? '1st Half' :
+                                            row.leaveHalfSlot === 'SECOND' ? '2nd Half' : '';
+                                } else {
+                                    label = 'Full Day';
+                                }
+                            }
+
+                            var tag = label
+                            	? ' <span class="half-badge ms-1 text-small" style="width:max-content;"> ' + ' – ' + label + '</span>'
+                            	: '';
+
+                            return '<span class="status-badge ' + badgeClass + '">' +
+                                     data + tag +
+                                   '</span>';
                         }
                     },
                     {
@@ -1298,18 +1264,45 @@
             }
 
             $('#downloadMissedPunchesBtn').click(downloadAllMissedPunches);
+            
+         	// Utility to merge date and time: yyyy-mm-dd + hh:mm  =>  yyyy-mm-ddThh:mm
+			function isoDateTime(dateId, timeId) {
+				  const d = $(dateId).val()?.trim();
+				  const t = $(timeId).val()?.trim();
+
+				  if (!d || !t) {
+				    return "";
+				  }
+				  
+				  return d + "T" + t;
+			}
+         	
+            flatpickr(".time-picker", {
+            	  enableTime : true,
+            	  noCalendar : true,      // time-only
+            	  dateFormat : "H:i",     // 24-hour value sent to JS
+            	  time_24hr : true,      // forces 24h UI
+            	  minuteIncrement : 1,
+            	  allowInput : false,
+            	  static : true,
+            	  onReady(_, __, inst) {
+            	    inst.hourElement.removeAttribute("readonly");
+            	    inst.minuteElement.removeAttribute("readonly");
+            	  },
+            	  // disableMobile: true  // disable native pickers on iOS/Android
+           	});
 
             $('#submitAttendanceBtn').on('click', function () {
                 const data = {
                     empCode: $('#attendanceEmp').val().split(' - ')[0],
                     employeeName: $('#attendanceEmp').val().split(' - ')[1],
-                    checkIn: $('#checkIn').val(),
-                    checkOut: $('#checkOut').val(),
+                    checkIn: isoDateTime('#checkInDate',  '#checkInTime'),
+                    checkOut: isoDateTime('#checkOutDate', '#checkOutTime'),
                     remarks: $('#attRemarks').val()
                 };
 
                 if (!data.checkIn || !data.checkOut) {
-                    alert("Check-In and Check-Out must be provided.");
+                    alert("Check-In and Check-Out date & time must be provided.");
                     return;
                 }
 

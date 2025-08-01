@@ -22,7 +22,10 @@ public interface AttendanceService {
                 String areaAlias, boolean onlyMissed);
 		void downloadMissedPunches(List<AttendanceDto> missedPunches, HttpServletResponse response) throws IOException;
 		Object regularizeAttendance(AttendanceRegularizationDTO data, String userId);
+		
 		Object applyLeave(AttendanceLeaveDTO dto, String userId);
+		String v2ApplyLeave(AttendanceLeaveDTO dto, String userId);
+		
 		Object addAttendance(AttendanceDto data, String userId);
 		List<EmployeeDto> getEligibleEmployees();
 		List<AttendanceExportDTO> getExportData(String fromDate, String toDate);

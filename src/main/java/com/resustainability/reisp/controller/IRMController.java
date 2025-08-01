@@ -265,6 +265,23 @@ public class IRMController {
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
 	    }
 	}
+	
+	@RequestMapping("/v2/attendance/leave")
+	@ResponseBody
+	public ResponseEntity<String> v2ApplyLeave(
+			@RequestBody AttendanceLeaveDTO dto,
+			HttpSession session
+	) {
+	    try {
+	        String userId = (String) session.getAttribute("USER_ID");
+            String message = attendanceService.v2ApplyLeave(dto, userId);
+            return ResponseEntity.ok(message);
+	    } catch (Exception e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+	    }
+	}
+	
+	
 	@RequestMapping("/attendance/employees")
 	@ResponseBody
 	public ResponseEntity<List<EmployeeDto>> getEligibleEmployees() {
