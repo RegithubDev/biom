@@ -232,7 +232,7 @@ public class HomeController {
 
 	/**
 	 * @param searchParameter 
-	 * @param activity 
+//	 * @param activity
 	 * @return
 	 */
 	public int getTotalRecords(User obj, String searchParameter) {
@@ -246,10 +246,10 @@ public class HomeController {
 	}
 
 	/**
-	 * @param pageDisplayLength
+//	 * @param pageDisplayLength
 	 * @param offset 
-	 * @param activity 
-	 * @param clientId 
+//	 * @param activity
+//	 * @param clientId
 	 * @return
 	 */
 	public List<User> createPaginationData(int startIndex, int offset, User obj, String searchParameter) {
