@@ -4,14 +4,46 @@ public class EsiContribution {
 
 private String id,Entity_code,pt,pts,profit_center_code,profit_center_name,month_year,employee_contribution,employer_contribution,total_amount,amount_paid,
 difference,due_date,actual_payment_date,delay_days,challan_no,no_of_emp,status,employee_contributions,employer_contributions,total_amounts,amount_paids,differences,due_dates,actual_payment_dates,delay_dayss,challan_nos,no_of_emps
-,created_date,modified_date,created_by,modified_by;
+,created_date,modified_date,created_by,modified_by,atatchment,remarks,atatchments,remarkss;
+
+public String getAtatchment() {
+	return atatchment;
+}
+
+public void setAtatchment(String atatchment) {
+	this.atatchment = atatchment;
+}
+
+public String getRemarks() {
+	return remarks;
+}
+
+public void setRemarks(String remarks) {
+	this.remarks = remarks;
+}
+
+public String getAtatchments() {
+	return atatchments;
+}
+
+public void setAtatchments(String atatchments) {
+	this.atatchments = atatchments;
+}
+
+public String getRemarkss() {
+	return remarkss;
+}
+
+public void setRemarkss(String remarkss) {
+	this.remarkss = remarkss;
+}
 
 public String getCreated_date() {
 	return created_date;
 }
 
 public void setCreated_date(String created_date) {
-	this.created_date = created_date;
+	this.created_date = created_date; 
 }
 
 public String getModified_date() {

@@ -110,7 +110,7 @@ public class UserDao {
 					+ "modified_on= getdate(),\r\n"
 					+ "status=:status,\r\n"
 					+ "modified_by=:modified_by "
-					+ "where user_id = :user_id ";
+					+ "where id = :id ";
 			BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);		 
 		    count = namedParamJdbcTemplate.update(updateQry, paramSource);
 			if(count > 0) {

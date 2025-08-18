@@ -50,10 +50,27 @@ public class PTContributionDao {
 
 	        		+ "WHERE 1=1 ";
 	        List<Object> params = new ArrayList<>();
-    		if(!usr.getRole().equals("Admin") && !usr.getRole().equals("SA")) {
-    			sql += "and pf.status <> 'Inactive' and pf.[profit_center_code] = ? ";
-    			 params.add(usr.getProfit_center_code());
-    		}
+	        if (!usr.getRole().equals("Admin") && !usr.getRole().equals("SA")) {
+	            String pcCodes = usr.getProfit_center_code();
+
+	            if (pcCodes != null && pcCodes.contains(",")) {
+	                // Split into array
+	                String[] codes = pcCodes.split(",");
+
+	                // Build IN clause with placeholders
+	                String placeholders = String.join(",", java.util.Collections.nCopies(codes.length, "?"));
+	                sql += " AND pf.status <> 'Inactive' AND pf.[profit_center_code] IN (" + placeholders + ") ";
+
+	                // Add each code as parameter
+	                for (String code : codes) {
+	                    params.add(code.trim());
+	                }
+	            } else {
+	                // Single code as before
+	                sql += " AND pf.status <> 'Inactive' AND pf.[profit_center_code] = ? ";
+	                params.add(pcCodes);
+	            }
+	        }
 
 	        if (monthYear != null) {
 	            sql += " AND month_year = ?";

@@ -5,7 +5,39 @@ public class PfContribution {
 private String id,entity_code,entity_name,profit_center_code,profit_center_name,month_year,employee_contribution,vpf,employer_contribution,pf_admin,pf_edli,
 total_amount,amount_paid,difference,due_date,actual_payment_date,delay_days,challan_no,status,no_of_emp,created_date,modified_date,created_by,modified_by,
 ids,entity_codes,entity_names,profit_center_codes,profit_center_names,month_years,employee_contributions,vpfs,employer_contributions,pf_admins,pf_edlis,total_amounts,amount_paids,differences,due_dates,actual_payment_dates,delay_dayss,challan_nos,statuss,no_of_emps
-;
+,atatchment,remarks,atatchments,remarkss;
+
+public String getAtatchment() {
+	return atatchment;
+}
+
+public void setAtatchment(String atatchment) {
+	this.atatchment = atatchment;
+}
+
+public String getRemarks() {
+	return remarks;
+}
+
+public void setRemarks(String remarks) {
+	this.remarks = remarks;
+}
+
+public String getAtatchments() {
+	return atatchments;
+}
+
+public void setAtatchments(String atatchments) {
+	this.atatchments = atatchments;
+}
+
+public String getRemarkss() {
+	return remarkss;
+}
+
+public void setRemarkss(String remarkss) {
+	this.remarkss = remarkss;
+}
 
 public String getCreated_date() {
 	return created_date;
