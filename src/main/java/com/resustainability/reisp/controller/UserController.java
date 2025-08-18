@@ -48,10 +48,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.resustainability.reisp.common.DateForUser;
 import com.resustainability.reisp.constants.PageConstants;
-
+import com.resustainability.reisp.model.PfContribution;
 import com.resustainability.reisp.model.User;
 import com.resustainability.reisp.model.UserPaginationObject;
-
+import com.resustainability.reisp.service.ContributionService;
 import com.resustainability.reisp.service.UserService;
 
 @Controller
@@ -88,14 +88,22 @@ public class UserController {
 	@Value("${template.upload.formatError}")
 	public String uploadformatError;
 	
+	 @Autowired
+	 private ContributionService contributionService;
+	 
 	@RequestMapping(value = "/user", method = {RequestMethod.POST, RequestMethod.GET})
 	public ModelAndView user(@ModelAttribute User user, HttpSession session) {
 		ModelAndView model = new ModelAndView(PageConstants.user);
 		User obj = null;
 		try {
-		
-			List<User> objList = service.getReportingTosList(obj);
-			model.addObject("objList", objList);
+			String role = (String) session.getAttribute("ROLE");
+			String pc = (String) session.getAttribute("PC");
+			User usr = new User();
+			usr.setRole(role);
+			List<PfContribution> eList = contributionService.geteList();
+			model.addObject("eList", eList);
+			List<PfContribution> pList = contributionService.getpList();
+			model.addObject("profitCenterList", pList);
 			
 			List<User>  usersList = service.getUsersList(obj);
 			model.addObject("usersList", usersList);
@@ -159,24 +167,7 @@ public class UserController {
 		}
 		return model;
 	}
-	
-	@RequestMapping(value = "/ajax/getUserList1", method = {RequestMethod.GET,RequestMethod.POST},produces=MediaType.APPLICATION_JSON_VALUE)
-	@ResponseBody
-	public List<User> getLcationsList(@ModelAttribute User obj,HttpSession session) {
-		List<User> companiesList = null;
-		String userId = null;
-		String userName = null;
-		try {
-			userId = (String) session.getAttribute("USER_ID");
-			userName = (String) session.getAttribute("USER_NAME");
-			companiesList = service.getUsersList(obj);
-		}catch (Exception e) {
-			e.printStackTrace();
-			logger.error("getLcationsList : " + e.getMessage());
-		}
-		return companiesList;
-	}
-	
+
 	@RequestMapping(value = "/ajax/getUserList", method = { RequestMethod.POST, RequestMethod.GET })
 	public void getUsersList(@ModelAttribute User obj, HttpServletRequest request,
 			HttpServletResponse response, HttpSession session) throws IOException {
@@ -346,7 +337,7 @@ public class UserController {
 		return objsList;
 	}
 
-	@RequestMapping(value = "/add-user", method = {RequestMethod.GET,RequestMethod.POST})
+	@RequestMapping(value = "/addUser", method = {RequestMethod.GET,RequestMethod.POST})
 	public ModelAndView addUser(@ModelAttribute User obj,RedirectAttributes attributes,HttpSession session) {
 		boolean flag = false;
 		String userId = null;
@@ -359,9 +350,7 @@ public class UserController {
 			DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); 
 		    String dt = formatter.format(new Date());
 			String endDate = DateForUser.date();
-			obj.setEnd_date(endDate);
 			obj.setCreated_by(userId);
-			obj.setCreated_date(dt);
 			flag = service.addUser(obj);
 			if(flag == true) {
 				attributes.addFlashAttribute("success", "User Added Succesfully.");
@@ -388,7 +377,7 @@ public class UserController {
 		return model;
 	}
 	
-	@RequestMapping(value = "/update-user", method = {RequestMethod.GET,RequestMethod.POST})
+	@RequestMapping(value = "/updateUser", method = {RequestMethod.GET,RequestMethod.POST})
 	public ModelAndView updateUser(@ModelAttribute User obj,RedirectAttributes attributes,HttpSession session) {
 		boolean flag = false;
 		String userId = null;
@@ -401,7 +390,7 @@ public class UserController {
 			DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); 
 		    String dt = formatter.format(new Date());
 			obj.setModified_by(userId);
-			obj.setModified_date(dt);
+			obj.setModified_on(dt);
 			flag = service.updateUser(obj);
 			if(flag == true) {
 				attributes.addFlashAttribute("success", "User Updated Succesfully.");

@@ -2,10 +2,10 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.resustainability.reisp</groupId>
-  <artifactId>biom</artifactId>
+  <artifactId>fi</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>war</packaging>
-  <name>biom</name>
+  <name>fi</name>
   <url>http://maven.apache.org</url>
   
     <properties>
@@ -284,7 +284,7 @@
 </repositories>
 
  <build>
-  <finalName>biom</finalName>
+  <finalName>fi</finalName>
   <plugins>
     <plugin>
       <artifactId>maven-compiler-plugin</artifactId>
