@@ -47,281 +47,21 @@ public class UserDao {
 		try {
 			int arrSize = 0;
 			jdbcTemplate = new JdbcTemplate(dataSource);
-			String qry = "SELECT distinct (up.user_id),(select sum((DATEDIFF(minute,(ual.[user_login_time] ) ,(ual.[user_logout_time] ) )))/60 "
-					+ "FROM [user_audit_log] ual where ual.user_id = up.user_id) as minutes,";
-					qry = qry +"(select DATEDIFF(DAY,min([user_login_time] ) ,max([user_login_time] ) )  FROM [user_audit_log] ual where user_id is not null ";
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getUser_id())) {
-				qry = qry + " and  ual.user_id = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() != 0  && obj.getTime_period() != 13) {
-				qry = qry + " and [user_login_time] >= DATEADD(day, ?, GETDATE()) ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() == 13) {
-				qry = qry + " and [user_login_time] is null ";
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and ua.status = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject())) {
-				qry = qry + " and up.base_project = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getBase_role())) {
-				qry = qry + " and up.base_role = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-				qry = qry + " and up.base_sbu = ? ";
-				arrSize++;
-			}
-			qry = qry +  " ) as days ,";
+			String qry = "SELECT  [id]\r\n"
+					+ "      ,[user_id]\r\n"
+					+ "      ,[email_id]\r\n"
+					+ "      ,[entity_code]\r\n"
+					+ "      ,[profit_center_code]\r\n"
+					+ "      ,[role]\r\n"
+					+ "      ,[created_on]\r\n"
+					+ "      ,[modified_on]\r\n"
+					+ "      ,[status]\r\n"
+					+ "  FROM [FIDB].[dbo].[fi_user]\r\n"
+					+ " ";
 			
+			qry = qry + " order by user_id asc"; 
 			
-			
-			qry = qry +"(select sum((DATEDIFF(minute,([user_login_time] ) ,([user_logout_time]))))/60 FROM [user_audit_log] ual where user_id is not null ";
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getUser_id())) {
-				qry = qry + " and  ual.user_id = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() != 0  && obj.getTime_period() != 13) {
-				qry = qry + " and [user_login_time] >= DATEADD(day, ?, GETDATE()) ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() == 13) {
-				qry = qry + " and [user_login_time] is null ";
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and ua.status = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject())) {
-				qry = qry + " and up.base_project = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getBase_role())) {
-				qry = qry + " and up.base_role = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-				qry = qry + " and up.base_sbu = ? ";
-				arrSize++;
-			}
-			qry = qry +  " ) as hours ,";
-			
-			
-			qry = qry +	"(select count( up.user_id) from [user_profile] up left join [user_accounts] ua on up.user_id = ua.user_id where up.user_id <> ''"
-					+ " and ua.status = 'Active' ";
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getUser_id())) {
-				qry = qry + " and  up.user_id = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() != 0  && obj.getTime_period() != 13) {
-				qry = qry + " and [user_login_time] >= DATEADD(day, ?, GETDATE()) ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() == 13) {
-				qry = qry + " and [user_login_time] is null ";
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and ua.status = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject())) {
-				qry = qry + " and up.base_project = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getBase_role())) {
-				qry = qry + " and up.base_role = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-				qry = qry + " and up.base_sbu = ? ";
-				arrSize++;
-			}
-			qry = qry + " ) as active_users,"
-			+ "(select count( up.user_id) from [user_profile] up left join [user_accounts] ua on up.user_id = ua.user_id where up.user_id <> '' "
-			+ " and ua.status <> 'Active' ";
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getUser_id())) {
-				qry = qry + " and  up.user_id = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() != 0  && obj.getTime_period() != 13) {
-				qry = qry + " and [user_login_time] >= DATEADD(day, ?, GETDATE()) ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() == 13) {
-				qry = qry + " and [user_login_time] is null ";
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and ua.status = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject())) {
-				qry = qry + " and up.base_project = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getBase_role())) {
-				qry = qry + " and up.base_role = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-				qry = qry + " and up.base_sbu = ? ";
-				arrSize++;
-			}
-			
-			qry = qry + " ) as inActive_users,up.base_sbu,up.base_project as project_code,up.email_id,up.contact_number,up.base_role as user_role,up.base_department as department_code,"
-					+ "project_name as base_project,sbu_name,dd.department_name as base_department,up.base_role,(select max(user_login_time) "
-					+ "from [user_audit_log] uuu where uuu.user_id =  up.user_id) as last_login,"
-			+ "up.id,up.user_id,up.user_name,up.email_id,up.contact_number,up3.user_name as reporting_to,ua.status,up.reporting_to as reporting_to_id, "
-			+"FORMAT (up.created_date, 'dd-MMM-yy') as created_date,up1.user_name as 	"
-			+ "created_by,FORMAT	(up.modified_date, 'dd-MMM-yy') as modified_date,up2.user_name as  modified_by "
-			+ "FROM [user_profile] up "
-			+ "left join [user_accounts] ua on up.user_id = ua.user_id  "
-			+ "left join [user_audit_log] ual on up.user_id = ual.user_id  "
-			
-			+ "left join [project] p on up.base_project = p.project_code  "
-			+ "left join [sbu] ss on up.base_sbu = ss.sbu_code  "
-			+ "left join [department] dd on up.base_department = dd.department_code  "
-			
-			+ "left join [user_profile] up1 on up.created_by = up1.user_id "
-			+ "left join [user_profile] up3 on up.reporting_to = up3.user_id "
-			+ "left join [user_profile] up2 on up.modified_by = up2.user_id  where up.user_id <> '' ";
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getUser_id())) {
-				qry = qry + " and up.user_id = ? ";
-				arrSize++;
-			}	
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() != 0  && obj.getTime_period() != 13) {
-				qry = qry + " and [user_login_time] >= DATEADD(day, ?, GETDATE()) ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() == 13) {
-				qry = qry + " and [user_login_time] is null ";
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				qry = qry + " and ua.status = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject())) {
-				qry = qry + " and up.base_project = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getBase_role())) {
-				qry = qry + " and up.base_role = ? ";
-				arrSize++;
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-				qry = qry + " and up.base_sbu = ? ";
-				arrSize++;
-			}
-			qry = qry + " order by up.user_name asc";
-			Object[] pValues = new Object[arrSize];
-			int i = 0;
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getUser_id())) {
-				pValues[i++] = obj.getUser_id();
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() != 0  && obj.getTime_period() != 13) {
-				pValues[i++] = obj.getTime_period();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject())) {
-				pValues[i++] = obj.getProject();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getBase_role())) {
-				pValues[i++] = obj.getBase_role();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-				pValues[i++] = obj.getSbu();
-			}
-			
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getUser_id())) {
-				pValues[i++] = obj.getUser_id();
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() != 0  && obj.getTime_period() != 13) {
-				pValues[i++] = obj.getTime_period();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject())) {
-				pValues[i++] = obj.getProject();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getBase_role())) {
-				pValues[i++] = obj.getBase_role();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-				pValues[i++] = obj.getSbu();
-			}
-			
-			
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getUser_id())) {
-				pValues[i++] = obj.getUser_id();
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() != 0  && obj.getTime_period() != 13) {
-				pValues[i++] = obj.getTime_period();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject())) {
-				pValues[i++] = obj.getProject();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getBase_role())) {
-				pValues[i++] = obj.getBase_role();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-				pValues[i++] = obj.getSbu();
-			}
-			
-			
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getUser_id())) {
-				pValues[i++] = obj.getUser_id();
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() != 0  && obj.getTime_period() != 13) {
-				pValues[i++] = obj.getTime_period();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject())) {
-				pValues[i++] = obj.getProject();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getBase_role())) {
-				pValues[i++] = obj.getBase_role();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-				pValues[i++] = obj.getSbu();
-			}
-			
-			
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getUser_id())) {
-				pValues[i++] = obj.getUser_id();
-			}
-			if(!StringUtils.isEmpty(obj) && obj.getTime_period() != 0  && obj.getTime_period() != 13) {
-				pValues[i++] = obj.getTime_period();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getStatus())) {
-				pValues[i++] = obj.getStatus();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getProject())) {
-				pValues[i++] = obj.getProject();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getBase_role())) {
-				pValues[i++] = obj.getBase_role();
-			}
-			if(!StringUtils.isEmpty(obj) && !StringUtils.isEmpty(obj.getSbu())) {
-				pValues[i++] = obj.getSbu();
-			}
-			objsList = jdbcTemplate.query( qry,pValues, new BeanPropertyRowMapper<User>(User.class));	
+			objsList = jdbcTemplate.query( qry, new BeanPropertyRowMapper<User>(User.class));	
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new Exception(e);
@@ -336,45 +76,16 @@ public class UserDao {
 		TransactionStatus status = transactionManager.getTransaction(def);
 		try {
 			NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-			if(!StringUtils.isEmpty(obj.getPassword())) {
-				String encryptPwd = EncryptDecrypt.encrypt(obj.getPassword());	
-				obj.setPassword(encryptPwd);
-			}
-			obj.setReward_points("100");
-			String insertQry = "INSERT INTO [user_profile] "
-					+ "(user_id,user_name,email_id,contact_number,base_role,base_project,base_sbu,base_department,reporting_to,created_by,end_date,created_date,reward_points)"
+			String insertQry = "INSERT INTO [FIDB].[dbo].[fi_user] "
+					+ "(user_id,email_id,role,profit_center_code,created_on,status,created_by)"
 					+ " VALUES "
-					+ "(:user_id,:user_name,:email_id,:contact_number,:base_role,:base_project,:base_sbu,:base_department,:reporting_to,:created_by,:end_date,getdate(),:reward_points)";
+					+ "(:user_id,:email_id,:role,:profit_center_code,getdate(),:status,:created_by)";
 			BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);		 
 		    count = namedParamJdbcTemplate.update(insertQry, paramSource);
 		    if(count > 0) {
-		    	String UA_qry = "INSERT INTO [user_accounts] (user_id,user_name,status) VALUES (:user_id,:email_id,:status)";
-		    	paramSource = new BeanPropertySqlParameterSource(obj);		 
-			    count = namedParamJdbcTemplate.update(UA_qry, paramSource);
-			    obj.setAction("User Creation Reward");
-			    String HIS_qry = "INSERT INTO [rewards_history] (action,	reward_points,	user_id,created_date) VALUES (:action,:reward_points,:user_id,getdate())";
-		    	paramSource = new BeanPropertySqlParameterSource(obj);		 
-			    count = namedParamJdbcTemplate.update(HIS_qry, paramSource);
+		    	flag = true;
 		    }
-			if(false) {
-				flag = true;
-				EMailSender emailSender = new EMailSender();
-				String login_url = CommonConstants.HOME ;
-				Mail mail = new Mail();
-				mail.setMailTo(obj.getEmail_id());
-				mail.setMailSubject("Welcome to ReOne");
-				String body = "Dear "+obj.getUser_name()+"<br>"
-						+ "Congratulations and a warm welcome to <b>ReOne</b> that brings all your work place apps together in one place! You are now Rewarded with <b>100 Reward PSoints</b>."
-						+ "<br>Thank you for joining <b>ReOne</b> Application, "
-						+ "<br>To explore more Please follow the link <a href="+login_url+"><button>Get Started</button></a>"
-						+ "<br><br>"
-						+ "Best regards,"
-						+ "<p style='color : red'><b>ReOne</b></p>"
-						+ "<b>Re Sustainability</b>";
-				String subject = "Thank You for Registering in ReOne";
-				emailSender.send(mail.getMailTo(), mail.getMailSubject(), body,obj,subject);
-			}
-			flag = true;
+			
 			transactionManager.commit(status);
 		}catch (Exception e) {
 			transactionManager.rollback(status);
@@ -391,18 +102,19 @@ public class UserDao {
 		TransactionStatus status = transactionManager.getTransaction(def);
 		try {
 			NamedParameterJdbcTemplate namedParamJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-			String updateQry = "UPDATE [user_profile] set user_name=:user_name,email_id=:email_id,contact_number=:contact_number,"
-					+ "base_sbu= :base_sbu,base_project= :base_project,base_department= :base_department,base_role= :base_role,reporting_to= :reporting_to,"
-					+ "modified_by=:modified_by,modified_date= getdate()  "
+			String updateQry = "UPDATE [FIDB].[dbo].[fi_user] set \r\n"
+					+ "email_id=:email_id,\r\n"
+					+ "entity_code=:entity_code,\r\n"
+					+ "profit_center_code=:profit_center_code,\r\n"
+					+ "role=:role,\r\n"
+					+ "modified_on= getdate(),\r\n"
+					+ "status=:status,\r\n"
+					+ "modified_by=:modified_by "
 					+ "where user_id = :user_id ";
 			BeanPropertySqlParameterSource paramSource = new BeanPropertySqlParameterSource(obj);		 
 		    count = namedParamJdbcTemplate.update(updateQry, paramSource);
 			if(count > 0) {
-				updateUserAccounts(obj);
 				flag = true;
-				String updateAuditQry = "UPDATE [user_accounts] set status=:status where user_id = :user_id ";
-				paramSource = new BeanPropertySqlParameterSource(obj);		 
-			    count = namedParamJdbcTemplate.update(updateAuditQry, paramSource);
 			}
 			transactionManager.commit(status);
 		}catch (Exception e) {
@@ -443,13 +155,12 @@ public class UserDao {
 		User userDetails = null;
 		try{  
 			con = dataSource.getConnection();
-			String qry = "select up.id,up.user_id,up.user_name,up.base_role,up.contact_number,up.email_id,up.base_department,up.base_sbu,up.base_project,"
-					+ "up.reward_points,up.reporting_to,up1.user_name as reporting_user_name,up.version_no from [user_profile] up "
-					+ "LEFT JOIN user_accounts ua on up.user_id = ua.user_id  "
-					+ "LEFT JOIN user_profile up1 on up.reporting_to = up1.user_id  "
-					+ "where  up.user_name <> '' and ua.status = 'Active' and (Format( CURRENT_TIMESTAMP,'yyyy-MM-dd') <= up.end_date or up.end_date is null) ";
+			String qry = "  select USER_ID,email_id,u.entity_code,e.entity_name, u.profit_center_code,p.profit_center_name,u.role,u.status   from [fi_user] u\r\n"
+					+ "  left join entity e on u.entity_code = e.entity_code\r\n"
+					+ "  left join profit_center p on u.profit_center_code = p.profit_center_code   "
+					+ "where  u.status = 'Active' ";
 			if(!StringUtils.isEmpty(user.getEmail_id())){
-				qry = qry + "AND up.email_id = ? "; 
+				qry = qry + "AND u.email_id = ? "; 
 			}
 			stmt = con.prepareStatement(qry);
 			if(!StringUtils.isEmpty(user.getEmail_id())){
@@ -458,26 +169,13 @@ public class UserDao {
 			rs = stmt.executeQuery();  
 			if(rs.next()) {
 				userDetails = new User();
-				userDetails.setId(rs.getString("id"));
 				userDetails.setUser_id(rs.getString("user_id"));
-				userDetails.setUser_name(rs.getString("user_name"));
 				userDetails.setEmail_id(rs.getString("email_id"));
-				userDetails.setContact_number(rs.getString("contact_number"));
-				userDetails.setReporting_to(rs.getString("reporting_to"));
-				userDetails.setBase_role(rs.getString("base_role"));
-				userDetails.setBase_sbu(rs.getString("base_sbu"));
-				userDetails.setBase_project(rs.getString("base_project"));
-				userDetails.setBase_department(rs.getString("base_department"));
-				userDetails.setReward_points(rs.getString("reward_points"));
-				userDetails.setReporting_user_name(rs.getString("reporting_user_name"));
-				userDetails.setVersion_no(rs.getString("version_no"));
-				userDetails.setUser_session_id(user.getUser_session_id());
-				userDetails.setDevice_type(user.getDevice_type());
-				userDetails.setDevice_type_no(user.getDevice_type_no());
-				//int session_count = checkUserLoginDetails(userDetails);
-				//userDetails.setSession_count(session_count);
-				boolean flag =  setLastLoginTime(userDetails);
-				UserLoginActions(userDetails);
+				userDetails.setRole(rs.getString("role"));
+				userDetails.setEntity_code(rs.getString("entity_code"));
+				userDetails.setEntity_name(rs.getString("entity_name"));
+				userDetails.setProfit_center_code(rs.getString("profit_center_code"));
+				userDetails.setProfit_center_name(rs.getString("profit_center_name"));
 			}
 		}catch(Exception e){ 
 			throw new SQLException(e.getMessage());

@@ -1,344 +1,220 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
-<html class="loading" lang="en" data-textdirection="ltr">
+<html>
 <head>
-    <title>Employee Attendance Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compliance Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<<<<<<< HEAD
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+=======
+>>>>>>> 0be2277 (Initial commit)
     <style>
-		    .scrollable-table {
-		    overflow-x: auto;
-		    width: 100%;
-		}
-		#attendanceTable {
-		    min-width: 1000px;
-		    border-collapse: collapse;
-		}
-    
         :root {
-            --primary-color: #1e3a8a;
-            --secondary-color: #2563eb;
-            --accent-color: #60a5fa;
-            --light-color: #f1f5f9;
-            --dark-color: #0f172a;
-            --success-color: #22c55e;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --border-radius: 12px;
-            --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --pf-color: #3498db;
+            --esi-color: #e74c3c;
+            --pt-color: #2ecc71;
+            --compliance-color: #9b59b6;
+            --header-bg: #2c3e50;
+            --header-accent: #4a6491;
         }
-
+        
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(to bottom, #f8fafc, #e2e8f0);
-            color: var(--dark-color);
-            line-height: 1.7;
-            overflow-x: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
-
-        .dashboard-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--header-bg) 0%, var(--header-accent) 100%);
+            padding: 1rem;
+        }
+        
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 600;
             color: white;
-            padding: 2rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            margin-bottom: 2.5rem;
-            position: relative;
-            overflow: hidden;
         }
-
-        .dashboard-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,%3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cpath d="M2 2l16 16M2 18L18 2" stroke="%23ffffff" stroke-opacity=".1" stroke-width="2"/%3E%3C/g%3E%3C/svg%3E');
-            opacity: 0.1;
+        
+        .navbar-nav .nav-link {
+            color: white !important;
+            font-size: 1.1rem;
+            margin-left: 1rem;
         }
-
-        .card {
+        
+        .navbar-nav .nav-link:hover {
+            color: #f1f1f1 !important;
+        }
+        
+        .dropdown-menu {
+            background-color: #fff;
             border: none;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            transition: var(--transition);
-            margin-bottom: 2rem;
-            background: white;
-            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            min-width: 180px;
         }
-
-        .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        
+        .dropdown-item {
+            font-size: 1rem;
+            padding: 0.5rem 1.5rem;
+            transition: background-color 0.2s ease;
         }
-
-        .card-header {
-            background: linear-gradient(to right, #ffffff, #f8fafc);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            font-weight: 700;
-            padding: 1.25rem 2rem;
-            border-radius: var(--border-radius) var(--border-radius) 0 0;
-            color: var(--primary-color);
+        
+        .dropdown-item:hover {
+            background-color: #f1f1f1;
         }
-
-        .filter-section {
-            background: white;
-            padding: 2rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            margin-bottom: 2rem;
-            border-left: 4px solid var(--primary-color);
+        
+        .hexagon-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 30px 0;
         }
-
-        .form-control, .form-select {
-            border-radius: var(--border-radius);
-            padding: 0.75rem 1.25rem;
-            border: 1px solid #e2e8f0;
-            transition: var(--transition);
-            background: #f8fafc;
-            font-size: 0.95rem;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
-            background: white;
-        }
-
-        .btn-primary {
-            background: var(--primary-color);
-            border: none;
-            border-radius: var(--border-radius);
-            padding: 0.75rem 1.75rem;
-            font-weight: 600;
-            transition: var(--transition);
+        
+        .hexagon-btn {
             position: relative;
-            overflow: hidden;
-        }
-
-        .btn-primary:hover {
-            background: var(--secondary-color);
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-        }
-
-        .btn-primary::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255, 255, 255, 0.2),
-                transparent
-            );
-            transition: 0.5s;
-        }
-
-        .btn-primary:hover::after {
-            left: 100%;
-        }
-
-        .btn-outline-secondary {
-            border-radius: var(--border-radius);
-            border: 1px solid #e2e8f0;
-            color: var(--dark-color);
-            transition: var(--transition);
-        }
-
-        .btn-outline-secondary:hover {
-            background: var(--light-color);
-            border-color: var(--accent-color);
-            color: var(--primary-color);
-        }
-
-        #attendanceTable_wrapper {
-            background: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            padding: 2rem;
-        }
-
-        table.dataTable {
-            margin-top: 0 !important;
-            border-collapse: separate;
-            border-spacing: 0;
-            font-size: 0.95rem;
-        }
-
-        table.dataTable thead th {
-            background: #f8fafc;
-            padding: 1.25rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            border-bottom: 2px solid #e2e8f0;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        table.dataTable tbody td {
-            padding: 1rem 1.25rem;
-            vertical-align: middle;
-            border-top: 1px solid #f1f5f9;
-            transition: background 0.2s;
-        }
-
-        table.dataTable tbody tr:hover {
-            background: #f8fafc;
-        }
-
-        .status-badge {
-            display: inline-flex;
+            width: 180px;
+            height: 200px;
+            background-color: white;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: var(--transition);
-        }
-
-        #attendanceTable tbody tr.row-editing {
-            background: #fef3c7 !important;
-        }
-
-        #attendanceTable tbody tr.row-saved {
-            background: #d1fae5 !important;
-        }
-
-        .status-present {
-            background: rgba(34, 197, 94, 0.1);
-            color: var(--success-color);
-        }
-
-        .status-absent {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger-color);
-        }
-
-        .status-late {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--warning-color);
-        }
-
-        .status-holiday {
-            background: rgba(124, 58, 237, 0.1);
-            color: #7c3aed;
-        }
-
-        .loading-spinner {
-            width: 1.75rem;
-            height: 1.75rem;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            animation: spin 0.8s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        #status {
-            padding: 1rem 1.5rem;
-            border-radius: var(--border-radius);
-            font-weight: 500;
-            margin-top: 1.5rem;
-            border-left: 5px solid;
-        }
-
-        .status-success {
-            background: rgba(34, 197, 94, 0.1);
-            color: var(--success-color);
-            border-left-color: var(--success-color);
-        }
-
-        .status-error {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger-color);
-            border-left-color: var(--danger-color);
-        }
-
-        .status-info {
-            background: rgba(37, 99, 235, 0.1);
-            color: var(--primary-color);
-            border-left-color: var(--primary-color);
-        }
-
-        .modal-content {
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            border: none;
-        }
-
-        .modal-header {
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 1.5rem 2rem;
-        }
-
-        .modal-title {
-            color: var(--primary-color);
-            font-weight: 700;
-        }
-
-        .upload-area {
-            border: 2px dashed #e2e8f0;
-            border-radius: var(--border-radius);
-            padding: 2rem;
             text-align: center;
-            transition: var(--transition);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            border: none;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
         }
-
-        .upload-area:hover {
-            border-color: var(--accent-color);
-            background: rgba(37, 99, 235, 0.05);
+        
+        .hexagon-btn:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
         }
-
+        
+        .hexagon-btn.pf {
+            background-color: var(--pf-color);
+            color: white;
+        }
+        
+        .hexagon-btn.esi {
+            background-color: var(--esi-color);
+            color: white;
+        }
+        
+        .hexagon-btn.pt {
+            background-color: var(--pt-color);
+            color: white;
+        }
+        
+        .hexagon-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .hexagon-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .hexagon-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .dashboard-title {
+            font-size: 2.2rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+        
+        .dashboard-subtitle {
+            opacity: 0.8;
+            font-size: 1rem;
+        }
+        
+        footer {
+            margin-top: auto;
+            background-color: var(--header-bg);
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
         @media (max-width: 768px) {
-            .filter-section .row > div {
-                margin-bottom: 1.5rem;
+            .hexagon-btn {
+                width: 140px;
+                height: 160px;
             }
-
-            .dashboard-header h2 {
-                font-size: 1.75rem;
+            
+            .hexagon-icon {
+                font-size: 2.5rem;
             }
-
-            .card-header {
-                padding: 1rem 1.5rem;
+            
+            .hexagon-title {
+                font-size: 1.3rem;
+            }
+            
+            .hexagon-subtitle {
+                font-size: 0.8rem;
+            }
+            
+            .dashboard-title {
+                font-size: 1.8rem;
+            }
+            
+            .dashboard-subtitle {
+                font-size: 0.9rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1.5rem;
+            }
+            
+            .dropdown-menu {
+                min-width: 150px;
             }
         }
-
-        .fade-in {
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .pulse {
-            animation: pulse 2s infinite ease-in-out;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
-            70% { box-shadow: 0 0 0 12px rgba(37, 99, 235, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+        
+        @media (max-width: 576px) {
+            .hexagon-container {
+                gap: 15px;
+                padding: 20px 0;
+            }
+            
+            .hexagon-btn {
+                width: 120px;
+                height: 140px;
+            }
+            
+            .hexagon-icon {
+                font-size: 2rem;
+            }
+            
+            .hexagon-title {
+                font-size: 1.1rem;
+            }
+            
+            .hexagon-subtitle {
+                font-size: 0.7rem;
+            }
         }
     </style>
 </head>
 <body>
+<<<<<<< HEAD
 <div class="container-fluid">
     <!-- BEGIN: Header-->
     <jsp:include page="../views/layout/header.jsp"></jsp:include> 
@@ -387,99 +263,70 @@
                     </div>
                 </form>
                 <div id="status" class="status-info small text-muted d-none animate__animated animate__fadeIn"></div>
+=======
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="#">Compliance Dashboard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                    
+                    
+                   <c:if test="${sessionScope.ROLE eq 'SA' || sessionScope.ROLE eq 'Admin' }">
+                        <a class="nav-link dropdown-toggle" href="#" id="mastersDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Masters
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="mastersDropdown">
+                            <li><a class="dropdown-item" href="<%=request.getContextPath()%>/user">Users</a></li>
+                            <li><a class="dropdown-item" href="<%=request.getContextPath()%>/pc">Profit Centers</a></li>
+                        </ul>
+                    </li>
+                    </c:if>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-danger text-white" href="<%=request.getContextPath()%>/logout">Logout</a>
+                    </li>
+                </ul>
+>>>>>>> 0be2277 (Initial commit)
             </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-header">
+        <div class="container text-center">
+            <h1 class="dashboard-title animate__animated animate__fadeIn">Welcome to the Dashboard</h1>
+            <p class="dashboard-subtitle animate__animated animate__fadeIn animate__delay-1s">Select a category to manage</p>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="card animate__animated animate__fadeInUp">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-table me-2"></i>Attendance Records</span>
-                    <div class="text-end">
-                        <span class="badge bg-light text-dark"><i class="fas fa-users me-1"></i><span id="count"></span> Employees</span>
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-success me-2" data-bs-toggle="modal" id="addAttendanceBtn" data-bs-target="#addAttendanceModal">
-                            <i class="fas fa-user-clock me-1"></i> Add Attendance
-                        </button>
-                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" id="applyLeaveBtn" data-bs-target="#applyLeaveModal">
-                            <i class="fas fa-plane-departure me-1"></i> Apply Leave
-                        </button>
-                        <div class="dropdown d-inline-block">
-                            <button class="btn btn-sm btn-dark" id="exportExcel" data-bs-toggle="modal">
-                                <i class="fas fa-file-excel me-1"></i> Export Attendance
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body scrollable-table">
-                    <table id="attendanceTable" class="table table-hover w-100">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Emp Code</th>
-                                <th>Name</th>
-                                <th>Check-In</th>
-                                <th>Check-Out</th>
-                                <th>Total Hours</th>
-                                <th>Overtime</th>
-                                <th>Status</th>
-                                <th>Holiday</th>
-                                <th>Regularize</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-            </div>
+    <div class="container">
+        <div class="hexagon-container">
+            <!-- PF Button -->
+            <a href="<%=request.getContextPath()%>/pf" class="hexagon-btn pf">
+                <i class="fas fa-piggy-bank hexagon-icon"></i>
+                <div class="hexagon-title">PF</div>
+                <div class="hexagon-subtitle">Provident Fund</div>
+            </a>
+            
+            <!-- ESI Button -->
+            <a href="<%=request.getContextPath()%>/esi" class="hexagon-btn esi">
+                <i class="fas fa-hospital-user hexagon-icon"></i>
+                <div class="hexagon-title">ESI</div>
+                <div class="hexagon-subtitle">Employee State Insurance</div>
+            </a>
+            
+            <!-- PT Button -->
+            <a href="<%=request.getContextPath()%>/pt" class="hexagon-btn pt">
+                <i class="fas fa-file-invoice-dollar hexagon-icon"></i>
+                <div class="hexagon-title">PT</div>
+                <div class="hexagon-subtitle">Professional Tax</div>
+            </a>
         </div>
     </div>
 
-    <!-- Regularize Modal -->
-    <div class="modal fade" id="regularizeModal" tabindex="-1" aria-labelledby="regularizeModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="regularizeModalLabel"><i class="fas fa-edit me-2"></i>Regularize Attendance</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i> Note: Download the missed punch template by clicking <a href="#" id="downloadTemplate" class="template-link">here</a>, fill it and re-upload here.
-                    </div>
-                    <button id="downloadMissedPunchesBtn" class="btn btn-warning btn-sm me-2">
-                        <i class="fas fa-file-excel me-1"></i> Download Missed Punches
-                    </button>
-                    <div id="status1" class="status-info d-none animate__animated animate__fadeIn"></div>
-                    <div id="uploadContainer" class="upload-area">
-                        <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--primary-color);"></i>
-                        <h5>Drag & Drop your file here</h5>
-                        <p class="text-muted">or</p>
-                        <button class="btn btn-primary" id="browseFilesBtn">Browse Files</button>
-                        <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls">
-                        <div id="fileName" class="file-name"></div>
-                    </div>
-                    <div id="uploadStatus" class="d-none"></div>
-                    <div class="mt-3">
-                        <h6><i class="fas fa-list-check me-2"></i>Instructions:</h6>
-                        <ol>
-                            <li>Download the template file</li>
-                            <li>Fill in the missing punch details</li>
-                            <li>Upload the completed file</li>
-                            <li>Click "Regularize" button to update records</li>
-                        </ol>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="submitRegularize" class="btn btn-primary" disabled>
-                        <i class="fas fa-check-circle me-1"></i> Regularize
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+<<<<<<< HEAD
     <!-- Add Attendance Modal -->
     <div class="modal fade" id="addAttendanceModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -1376,6 +1223,30 @@
             $('#addAttendanceBtn').on('click', function () {
                 populateEmployeeDropdown('attendanceEmp');
                 $('#addAttendanceModal').modal('show');
+=======
+    <footer>
+        <div class="container">
+            <p class="clearfix mb-0">
+                <span>COPYRIGHT &copy; <span id="currentYear"></span> | Powered by 
+                <a class="ms-25" href="https://resustainability.com/" target="_blank">Re Sustainability Limited</a>
+                <span class="d-none d-sm-inline-block">. All Rights Reserved.</span>
+            </span>
+        </p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            document.getElementById("currentYear").innerHTML = new Date().getFullYear();
+
+            // Add click animation to hexagon buttons
+            $('.hexagon-btn').on('click', function() {
+                $(this).addClass('animate__animated animate__pulse');
+                setTimeout(() => {
+                    $(this).removeClass('animate__animated animate__pulse');
+                }, 500);
+>>>>>>> 0be2277 (Initial commit)
             });
         });
     </script>
