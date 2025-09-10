@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
+<<<<<<< HEAD
                                                     
+=======
+                                                
+>>>>>>> 0be22774be56f74f236fbb15502732a798d923a4
     
     
     
@@ -10,10 +14,15 @@
     
     
     
+<<<<<<< HEAD
     
     <wb-module deploy-name="fi">
                                                                                                         
         
+=======
+    <wb-module deploy-name="fi">
+                                                                                                
+>>>>>>> 0be22774be56f74f236fbb15502732a798d923a4
         
         
         
@@ -25,8 +34,12 @@
         
         
         <wb-resource deploy-path="/" source-path="/target/m2e-wtp/web-resources"/>
+<<<<<<< HEAD
                                                                                                         
         
+=======
+                                                                                                
+>>>>>>> 0be22774be56f74f236fbb15502732a798d923a4
         
         
         
@@ -38,8 +51,12 @@
         
         
         <wb-resource deploy-path="/" source-path="/src/main/webapp" tag="defaultRootSource"/>
+<<<<<<< HEAD
                                                                                                         
         
+=======
+                                                                                                
+>>>>>>> 0be22774be56f74f236fbb15502732a798d923a4
         
         
         
@@ -51,8 +68,12 @@
         
         
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
+<<<<<<< HEAD
                                                                                         
         
+=======
+                                                                                
+>>>>>>> 0be22774be56f74f236fbb15502732a798d923a4
         
         
         
@@ -62,6 +83,7 @@
         
         
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/properties"/>
+<<<<<<< HEAD
                                                                                 
         
         
@@ -77,6 +99,21 @@
         
         
         
+=======
+                                                                        
+>>>>>>> 0be22774be56f74f236fbb15502732a798d923a4
+        
+        
+        
+        
+        
+        
+        
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
+                                                                                                
+        
+        
+        
         
         
         
@@ -85,10 +122,15 @@
         
         
         <property name="java-output-path" value="/biom/build/classes"/>
+<<<<<<< HEAD
                 
         <property name="context-root" value="fi"/>
                                                                                                     
     
+=======
+        <property name="context-root" value="fi"/>
+                                                                                            
+>>>>>>> 0be22774be56f74f236fbb15502732a798d923a4
     
     
     
@@ -100,8 +142,12 @@
     
     
     </wb-module>
+<<<<<<< HEAD
                 
 
+=======
+            
+>>>>>>> 0be22774be56f74f236fbb15502732a798d923a4
 
 
 </project-modules>
